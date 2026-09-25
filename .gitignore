@@ -1,0 +1,12 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Configuração local de ferramentas (não vai para o repositório)
+.claude/settings.local.json
+.impeccable/

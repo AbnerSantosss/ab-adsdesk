@@ -1,0 +1,29 @@
+# Stack do Portainer no servidor proxserverabner.
+#
+# A imagem vem pronta do GHCR (.github/workflows/build.yml publica a cada push
+# em main); a VPS não constrói nada. Para atualizar: Stacks → ab-adsdesk →
+# "Pull and redeploy".
+#
+# O painel é estático (nginx). O envio de e-mail só existe no npm run dev/preview
+# e não está nesta imagem, então não há variável de SMTP aqui. Este arquivo é
+# público: nenhum segredo mora nele.
+services:
+  ab-adsdesk:
+    image: ghcr.io/abnersantosss/ab-adsdesk:latest
+    pull_policy: always
+    container_name: ab-adsdesk
+    restart: unless-stopped
+    ports:
+      # Só o loopback do host: quem publica para a internet é o cloudflared do
+      # próprio servidor, que alcança http://localhost:3340. Portas já usadas
+      # por outras stacks: 3000, 3007, 3100, 3333, 3334, 8099, 8760.
+      - "127.0.0.1:${APP_PORT:-3340}:80"
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s

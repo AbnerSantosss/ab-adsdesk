@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Background Circle Teal/Turquoise Gradient -->
+    <radialGradient id="raroTealGrad" cx="38%" cy="32%" r="65%">
+      <stop offset="0%" stop-color="#8CE8ED" />
+      <stop offset="45%" stop-color="#56CCD3" />
+      <stop offset="85%" stop-color="#3FAAB1" />
+      <stop offset="100%" stop-color="#34969C" />
+    </radialGradient>
+
+    <!-- Metallic Silver/Gray Gradient for Upper Ribbon -->
+    <linearGradient id="silverGrad1" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#D2D7DC" />
+      <stop offset="35%" stop-color="#A8B0B7" />
+      <stop offset="70%" stop-color="#8A9299" />
+      <stop offset="100%" stop-color="#6F767C" />
+    </linearGradient>
+
+    <!-- Metallic Darker Silver Gradient for Lower Spine Ribbon -->
+    <linearGradient id="silverGrad2" x1="10%" y1="15%" x2="90%" y2="85%">
+      <stop offset="0%" stop-color="#B8BFC5" />
+      <stop offset="50%" stop-color="#8F979E" />
+      <stop offset="85%" stop-color="#737B82" />
+      <stop offset="100%" stop-color="#596066" />
+    </linearGradient>
+
+    <!-- Drop Shadow for Realistic Depth -->
+    <filter id="raroShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="2" dy="5" stdDeviation="6" flood-color="#1A2D33" flood-opacity="0.22" />
+    </filter>
+
+    <filter id="textGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <!-- Group for Logo Icon -->
+  <g transform="translate(250, 160)">
+    
+    <!-- Central Turquoise Glowing Circle -->
+    <circle cx="-5" cy="15" r="118" fill="url(#raroTealGrad)" filter="url(#raroShadow)" />
+
+    <!-- Stylized Head in Silver/Gray -->
+    <circle cx="42" cy="-105" r="23" fill="url(#silverGrad2)" filter="url(#raroShadow)" />
+
+    <!-- Stylized Flowing Ribbon 1 (Left shoulder sweep extending outwards) -->
+    <path 
+      d="M -105 -50 
+         C -65 -65, -15 -55, 30 -25
+         C 12 -42, -35 -56, -82 -44 
+         Z" 
+      fill="url(#silverGrad1)" 
+      filter="url(#raroShadow)" 
+    />
+
+    <!-- Stylized Central Human Figure & Spine Curve (Main Dynamic Ribbon) -->
+    <path 
+      d="M -60 -35
+         C -10 -40, 28 -28, 48 10
+         C 75 60, 52 110, 24 135
+         C -12 165, -28 178, -32 205
+         C 12 188, 55 168, 78 135
+         C 112 85, 102 20, 68 -25
+         C 45 -55, 0 -62, -60 -35
+         Z" 
+      fill="url(#silverGrad2)" 
+      filter="url(#raroShadow)" 
+    />
+
+    <!-- Secondary Fluid Ribbon (Overlapping Arc swooping to bottom right) -->
+    <path 
+      d="M -30 -15
+         C 15 -18, 42 15, 42 55
+         C 42 108, -8 135, -25 185
+         C -3 162, 28 140, 48 115
+         C 76 80, 78 35, 50 -5
+         C 28 -35, -5 -32, -30 -15
+         Z" 
+      fill="url(#silverGrad1)" 
+      opacity="0.95"
+    />
+
+    <!-- Bottom Flowing Tail Accent swooshing gracefully right -->
+    <path 
+      d="M -15 170
+         C 25 185, 80 192, 142 150
+         C 100 178, 45 188, 5 182
+         Z" 
+      fill="url(#silverGrad1)" 
+      filter="url(#raroShadow)" 
+    />
+  </g>
+
+  <!-- Typography: RARO PILATES -->
+  <g transform="translate(250, 395)" text-anchor="middle" filter="url(#textGlow)">
+    <text 
+      x="0" 
+      y="0" 
+      font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', sans-serif" 
+      font-size="46" 
+      font-weight="900" 
+      letter-spacing="5" 
+      fill="#3A4047"
+    >
+      RARO PILATES
+    </text>
+  </g>
+
+  <!-- Slogan Typography: CADA ALUNO É ÚNICO, CADA EVOLUÇÃO É VALIOSA -->
+  <g transform="translate(250, 435)" text-anchor="middle">
+    <text 
+      x="0" 
+      y="0" 
+      font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', sans-serif" 
+      font-size="13.5" 
+      font-weight="700" 
+      letter-spacing="3" 
+      fill="#6C757D"
+    >
+      CADA ALUNO É ÚNICO, CADA EVOLUÇÃO É VALIOSA
+    </text>
+  </g>
+</svg>
