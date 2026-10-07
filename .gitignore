@@ -10,3 +10,6 @@ coverage/
 # Configuração local de ferramentas (não vai para o repositório)
 .claude/settings.local.json
 .impeccable/
+
+# Originais de imagens e evidências locais de validação
+/output/

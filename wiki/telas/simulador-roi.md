@@ -1,6 +1,6 @@
 ---
 tipo: tela
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [tela, modal, roi, simulador, vendas]
 ---
 
@@ -19,6 +19,8 @@ tags: [tela, modal, roi, simulador, vendas]
 | Tempo médio que o aluno fica | 6 meses | 1–24 |
 
 Cada `SliderField` é um `<input type="range">` com `<label>` e `<output>`. O valor aparece formatado ("R$ 50", "40%"), e leitores de tela ouvem esse mesmo texto por `aria-valuetext`.
+
+**Conta real importada:** o simulador ainda consulta `accountTotals(account)`, enquanto a conta real guarda as métricas em `apiReport` e mantém `campaigns: []`. Por isso a premissa inicial cai em 8 unidades da moeda da conta e não representa o custo importado. O gestor deve ajustar as premissas manualmente; vincular o funil a uma família de conversão real é pendência em [[pontos-de-melhoria]]. Ver [[modelo-de-dados]] e [[meta-graph-api]].
 
 ## Cálculo (funil)
 ```

@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import "tailwindcss" source("./");
+@source "../index.html";
 
 /*
  * Cor de marca (white-label).
@@ -160,4 +161,178 @@
   body {
     background: white;
   }
+}
+
+/* Cor de marca restrita a identidade, acoes e selecao. Superficies sao neutras.
+ * Regras e fontes: wiki/arquitetura/cores-e-hierarquia-visual.md. */
+[data-brand="social"] {
+  --brand-50: #fff1f6;
+  --brand-100: #fce3ef;
+  --brand-200: #f5bdd6;
+  --brand-300: #ea8db7;
+  --brand-400: #db5d96;
+  --brand-500: #c93778;
+  --brand-600: #ab2867;
+  --brand-700: #872366;
+  --brand-800: #652155;
+  --brand-900: #491c43;
+  --brand-950: #2e142d;
+}
+
+:root {
+  --app-canvas: #f5f6f8;
+  --app-surface: #ffffff;
+  --app-subtle: #f0f2f5;
+  --app-border: #e1e5eb;
+  --app-muted: #526178;
+  --app-icon: #475569;
+  --surface-border: var(--app-border);
+  --surface-accent: var(--app-icon);
+}
+
+body, .social-app { background: var(--app-canvas); }
+.social-surface {
+  background: var(--app-surface);
+  border-color: var(--surface-border);
+}
+.social-card, .social-kpi {
+  border-radius: 18px;
+  box-shadow: 0 2px 5px #0f172a03;
+}
+.social-surface .text-slate-500, .social-surface .text-slate-400 { color: var(--app-muted); }
+.social-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--app-subtle);
+  color: var(--app-icon);
+}
+.social-inset {
+  background: #f8f9fb;
+  border: 1px solid #edf0f3;
+}
+.social-filterbar {
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background: var(--app-surface);
+}
+.social-filterbar button[aria-pressed="true"]:not(.social-date-chip) {
+  border-color: var(--brand-700);
+  background: var(--brand-700);
+  color: white;
+}
+.social-page-header {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
+  padding: 28px;
+  border: 1px solid var(--surface-border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.social-page-copy { min-width: 0; }
+.social-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--surface-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.social-eyebrow-line {
+  height: 3px;
+  width: 25px;
+  border-radius: 3px;
+  background: #94a3b8;
+}
+.social-channels { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.social-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border-radius: 10px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+}
+.social-channel svg { width: 16px; height: 16px; stroke-width: 2; }
+.social-channel-instagram, .social-channel-facebook { color: var(--app-icon); }
+.social-channels-compact .social-channel { padding: 8px; border-radius: 50%; }
+.social-page-photo {
+  position: relative;
+  display: none;
+  width: 100%;
+  height: 166px;
+  padding: 5px;
+  border-radius: 23px;
+  background: var(--app-subtle);
+  border: 1px solid var(--app-border);
+}
+.social-page-photo img { border-radius: 18px; }
+.social-photo-arrow {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 4px solid var(--app-surface);
+  background: var(--app-subtle);
+  color: var(--app-icon);
+}
+.social-photo-arrow svg { width: 21px; height: 21px; }
+.social-header { box-shadow: 0 2px 8px #0f172a03; border-color: var(--app-border); }
+.social-tab[aria-current="page"] { color: var(--brand-700); background: var(--brand-50); }
+.social-tab[aria-current="page"] svg { stroke-width: 2.4; }
+.social-tab-line { background: var(--brand-700); }
+.social-bottom-tab[aria-current="page"] { color: var(--brand-700); }
+.social-bottom-tab[aria-current="page"] > span { background: var(--brand-50); }
+.social-account-ring { padding: 2px; border-radius: 50%; background: var(--app-border); }
+.social-account-ring > span { border: 2px solid white; border-radius: 50%; }
+.social-account-avatar { outline: 1px solid #d4dae3; outline-offset: 2px; border: 2px solid white; }
+.social-primary-button { background: var(--brand-700); box-shadow: 0 2px 3px #0f172a0a; }
+.social-primary-button:hover { filter: brightness(.96); }
+.social-secondary-button { background: var(--app-surface); border-color: #cbd5e1; }
+.social-secondary-button:hover { background: var(--app-canvas); border-color: #94a3b8; }
+.social-champion { background: var(--app-surface); border-color: #cbd5e1; }
+.social-creative-card { border-color: var(--surface-border); box-shadow: 0 2px 5px #0f172a03; }
+.social-ad-account { background: var(--app-surface); border-bottom: 1px solid var(--app-border); }
+.social-ad-account img { max-width: 100%; }
+.social-report-message { background: var(--app-surface); border: 1px solid var(--app-border); }
+.social-date-chip { background: var(--app-surface); color:var(--app-icon); border-color:var(--app-border); }
+.social-date-chip[aria-pressed="true"] { background: var(--brand-700); color:white; border-color:var(--brand-700); }
+.social-date-chip:hover { border-color: #94a3b8; }
+.social-date-chip:not([aria-pressed="true"]) .text-slate-400 { color: var(--app-muted); }
+.social-dark-panel { background: #253044; }
+.social-dark-panel .social-icon { background: #ffffff18; color: white; }
+
+@media (min-width: 768px) {
+  .social-page-header-with-image { grid-template-columns: minmax(0,1fr) 200px; }
+  .social-page-photo { display: block; }
+}
+@media (min-width: 1024px) {
+  .social-page-header-with-image { grid-template-columns: minmax(0,1fr) 242px; }
+  .social-page-photo { height: 174px; }
+}
+@media (max-width: 639px) {
+  .social-page-header { padding: 21px; border-radius: 21px; }
+  .social-kpi { padding: 14px; }
+  .social-kpi .social-icon { width: 30px; height: 30px; border-radius: 9px; }
+}
+@media print {
+  .social-app, .social-surface, .social-inset, .social-dark-panel { background: white !important; color: #0f172a; box-shadow: none; }
+  .social-page-header { padding: 0 0 16px; border: 0; }
+  .social-page-photo, .social-channels, .social-header::before { display: none; }
+  .social-surface { break-inside: avoid; }
 }

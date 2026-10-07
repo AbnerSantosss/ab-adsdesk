@@ -6,16 +6,17 @@ import {
   MousePointerClick,
   Search,
   Send,
+  Target,
   TriangleAlert,
-  Users,
   type LucideIcon,
 } from 'lucide-react';
 import type { AdAccount, Campaign, CampaignObjective, ObjectiveFilter, ViewMode } from '../../types/metaAds';
-import { OBJECTIVES, OBJECTIVE_ORDER, CAMPAIGN_STATUS, tone } from '../../lib/objectives';
+import { OBJECTIVES, OBJECTIVE_ORDER, CAMPAIGN_STATUS } from '../../lib/objectives';
 import { accountTotals, campaignTotals, cpaHealth, creativeCpa, resultsWithUnit, sumCampaigns } from '../../lib/metrics';
 import { daysSince, formatDate, formatMoney, formatNumber, formatPercent, parseISODate, pluralize } from '../../lib/format';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
+import { CreativePreview } from '../ui/CreativePreview';
 import { PageHeader } from '../ui/PageHeader';
 import { buttonClass } from '../ui/button';
 import { ApiAccountNotice } from './ApiAccountNotice';
@@ -97,11 +98,12 @@ export function Campaigns({ account, viewMode, objectiveFilter, onObjectiveFilte
   }, [account.campaigns, objectiveFilter, status, query, sort]);
 
   const visibleTotals = useMemo(() => sumCampaigns(visible), [visible]);
+  const headerImage = account.campaigns.flatMap((campaign) => campaign.creatives).find((creative) => creative.previewImage)?.previewImage;
 
   if (account.campaigns.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Campanhas" />
+        <PageHeader title="Campanhas" eyebrow="Instagram & Facebook" tone="neutral" />
         <ApiAccountNotice account={account} missing="as campanhas desta conta" />
       </div>
     );
@@ -127,14 +129,17 @@ export function Campaigns({ account, viewMode, objectiveFilter, onObjectiveFilte
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
         title="Campanhas"
+        eyebrow="Instagram & Facebook"
+        tone="neutral"
+        image={headerImage ? { src: headerImage.src, alt: headerImage.description } : undefined}
         description="Cada campanha tem um objetivo: conversa no WhatsApp, cadastro, reconhecimento local ou cliques. O custo por resultado é comparado com a média da conta."
       />
 
-      <div className="space-y-3">
+      <div className="social-filterbar min-w-0 space-y-4 rounded-2xl p-4 sm:p-5">
         <div
           role="group"
           aria-label="Filtrar por tipo de campanha"
-          className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+          className="scrollbar-none flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap"
         >
           {chips.map((chip) => {
             const selected = chip.value === objectiveFilter;
@@ -147,7 +152,7 @@ export function Campaigns({ account, viewMode, objectiveFilter, onObjectiveFilte
                 onClick={() => onObjectiveFilterChange(chip.value)}
                 className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-semibold whitespace-nowrap transition ${
                   selected
-                    ? 'border-slate-900 bg-slate-900 text-white'
+                    ? 'border-slate-800 bg-slate-800 text-white shadow-sm'
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'
                 }`}
               >
@@ -239,7 +244,7 @@ export function Campaigns({ account, viewMode, objectiveFilter, onObjectiveFilte
           }
         />
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {visible.map((campaign) => (
             <li key={campaign.id}>
               <CampaignCard campaign={campaign} account={account} averageCpa={averageCpa} isManager={isManager} />
@@ -267,6 +272,7 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
   const health = cpaHealth(totals.cpa, averageCpa);
   const money = (v: number | null) => formatMoney(v, account.currency);
   const Icon = meta.icon;
+  const coverCreative = campaign.creatives.find((creative) => creative.previewImage);
   // Conta até o último dia com dados, não até hoje: sem isso o número crescia enquanto o gasto ficava parado.
   const lastDataDay = account.dailyHistory[0]?.date;
   const running =
@@ -274,13 +280,14 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
 
   return (
     <article
-      className={`rounded-2xl border bg-white shadow-sm ${
-        campaign.status === 'ACTIVE' ? 'border-slate-200' : 'border-slate-200/70 bg-slate-50/50'
+      data-tone="neutral"
+      className={`social-surface overflow-hidden rounded-2xl border shadow-sm ${
+        campaign.status === 'ACTIVE' ? 'border-white/80' : 'border-slate-200/70'
       }`}
     >
       <div className="p-4 sm:p-5">
         <div className="flex items-start gap-3">
-          <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${tone(meta.tone).icon}`}>
+          <span data-tone="neutral" className="social-icon grid size-11 shrink-0 place-items-center rounded-xl">
             <Icon className="size-5" aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
@@ -292,7 +299,7 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
                 <span className={`size-1.5 rounded-full ${status.dot}`} aria-hidden="true" />
                 {status.label}
               </Badge>
-              <Badge tone={meta.tone}>{meta.shortLabel}</Badge>
+              <Badge tone="slate">{meta.shortLabel}</Badge>
               {!campaign.isProfessionalStructure && (
                 <Badge tone="amber" title="Criado pelo botão Turbinar do Instagram, sem segmentação completa">
                   <TriangleAlert className="size-3" aria-hidden="true" />
@@ -305,12 +312,15 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
               </span>
             </div>
           </div>
+          {coverCreative && (
+            <CreativePreview creative={coverCreative} compact className="hidden !size-24 rounded-xl shadow-sm sm:flex" />
+          )}
         </div>
 
         <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Metric label="Investido" value={money(campaign.totalSpend)} />
           <Metric label={campaign.resultMetricName} value={formatNumber(campaign.resultsCount)} />
-          <div className="min-w-0">
+          <div className="social-inset min-w-0 rounded-xl px-3 py-3">
             <dt className="truncate text-xs font-medium text-slate-500">Custo por resultado</dt>
             <dd className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="text-base font-bold text-slate-900 tabular-nums sm:text-lg">{money(totals.cpa)}</span>
@@ -331,14 +341,14 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-controls={detailsId}
-        className="flex w-full items-center justify-between gap-2 border-t border-slate-100 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 sm:px-5"
+        className="flex w-full items-center justify-between gap-2 border-t border-white/70 bg-white/45 px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-white/80 hover:text-slate-900 sm:px-5"
       >
         {expanded ? 'Ocultar detalhes' : 'Ver públicos, destino e anúncios'}
         <ChevronDown className={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {expanded && (
-        <div id={detailsId} className="animate-fade-in space-y-5 border-t border-slate-100 px-4 py-4 sm:px-5">
+        <div id={detailsId} className="animate-fade-in space-y-5 border-t border-white/70 bg-white/40 px-4 py-4 sm:px-5">
           {(campaign.conversionDestination || campaign.userActionOnClick) && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {campaign.conversionDestination && (
@@ -355,7 +365,7 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
           )}
 
           {isManager && (
-            <dl className="grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3 sm:grid-cols-4">
+            <dl data-tone="neutral" className="social-surface grid grid-cols-2 gap-3 rounded-xl p-3 sm:grid-cols-4">
               <Metric label="Alcance" value={formatNumber(campaign.reach)} small />
               <Metric label="Impressões" value={formatNumber(campaign.impressions)} small />
               <Metric label="CTR" value={formatPercent(totals.ctr, 2)} small />
@@ -363,9 +373,9 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
             </dl>
           )}
 
-          <section>
+          <section data-tone="neutral" className="social-surface rounded-xl p-4">
             <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-              <Users className="size-4 text-slate-400" aria-hidden="true" />
+              <Target className="size-4 text-slate-600" aria-hidden="true" />
               Públicos ({campaign.adSets.length})
             </h3>
             {campaign.adSets.length === 0 ? (
@@ -375,7 +385,7 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
             ) : (
               <ul className="mt-2 grid grid-cols-1 gap-2 lg:grid-cols-2">
                 {campaign.adSets.map((set) => (
-                  <li key={set.id} className="rounded-xl border border-slate-200 p-3">
+                  <li key={set.id} className="social-inset min-w-0 rounded-xl p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="min-w-0 text-sm font-semibold text-slate-900">{set.name}</p>
                       <Badge tone={set.status === 'ACTIVE' ? 'emerald' : 'slate'}>
@@ -406,20 +416,23 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
           </section>
 
           {campaign.creatives.length > 0 && (
-            <section>
+            <section data-tone="neutral" className="social-surface rounded-xl p-4">
               <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                <Megaphone className="size-4 text-slate-400" aria-hidden="true" />
+                <Megaphone className="size-4 text-slate-600" aria-hidden="true" />
                 Anúncios ({campaign.creatives.length})
               </h3>
-              <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-slate-200">
+              <ul className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {campaign.creatives.map((cr) => (
-                  <li key={cr.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2.5">
-                    <span className="min-w-0 flex-1 text-sm font-medium text-slate-800">{cr.name}</span>
-                    <span className="flex items-center gap-2 text-xs text-slate-500 tabular-nums">
-                      {resultsWithUnit(cr.leads, campaign.objective)} · {money(creativeCpa(cr))} cada
-                      {cr.status === 'FATIGUE' && <Badge tone="amber">Em queda</Badge>}
-                      {cr.status === 'PAUSED' && <Badge tone="slate">Pausado</Badge>}
-                    </span>
+                  <li key={cr.id} data-tone="neutral" className="social-inset flex min-w-0 items-center gap-3 rounded-xl p-2.5">
+                    <CreativePreview creative={cr} compact className="!size-20 rounded-lg sm:!size-24" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm font-medium text-slate-800">{cr.name}</span>
+                      <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 tabular-nums">
+                        {resultsWithUnit(cr.leads, campaign.objective)} · {money(creativeCpa(cr))} cada
+                        {cr.status === 'FATIGUE' && <Badge tone="amber">Em queda</Badge>}
+                        {cr.status === 'PAUSED' && <Badge tone="slate">Pausado</Badge>}
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -433,7 +446,7 @@ function CampaignCard({ campaign, account, averageCpa, isManager }: CampaignCard
 
 function Metric({ label, value, small = false }: { label: string; value: string; small?: boolean }) {
   return (
-    <div className="min-w-0">
+    <div className="social-inset min-w-0 rounded-xl px-3 py-3">
       <dt className="truncate text-xs font-medium text-slate-500" title={label}>
         {label}
       </dt>
@@ -456,9 +469,9 @@ function InfoBlock({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 p-3">
-      <p className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-        <Icon className="size-3.5" aria-hidden="true" />
+    <div data-tone="neutral" className="social-surface min-w-0 rounded-xl p-4">
+      <p className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+        <span data-tone="neutral" className="social-icon grid size-8 shrink-0 place-items-center rounded-lg"><Icon className="size-4" aria-hidden="true" /></span>
         {title}
       </p>
       <p className="mt-1 text-sm text-slate-800">{children}</p>

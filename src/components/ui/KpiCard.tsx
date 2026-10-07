@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ArrowDownRight, ArrowRight, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import { formatDelta } from '../../lib/format';
+import type { SocialTone } from '../../lib/socialTheme';
 
 interface KpiCardProps {
   label: string;
@@ -9,10 +10,10 @@ interface KpiCardProps {
   hint?: ReactNode;
   /** Variação contra o período anterior e se subir é bom ou ruim. */
   delta?: { value: number | null; goodWhen: 'up' | 'down'; label?: string };
-  highlight?: boolean;
+  tone?: SocialTone;
 }
 
-export function KpiCard({ label, value, icon: Icon, hint, delta, highlight = false }: KpiCardProps) {
+export function KpiCard({ label, value, icon: Icon, hint, delta, tone: surfaceTone = 'neutral' }: KpiCardProps) {
   const showDelta = delta && delta.value != null && Number.isFinite(delta.value);
   // Abaixo de meio ponto percentual o número aparece como 0%: sem seta e sem cor de melhora ou piora.
   const isFlat = showDelta && Math.abs(delta.value!) < 0.005;
@@ -23,16 +24,13 @@ export function KpiCard({ label, value, icon: Icon, hint, delta, highlight = fal
 
   return (
     <div
-      className={`flex min-w-0 flex-col rounded-2xl border p-4 shadow-sm sm:p-5 ${
-        highlight ? 'border-brand-200 bg-brand-50/60' : 'border-slate-200 bg-white'
-      }`}
+      className="social-surface social-kpi flex min-w-0 flex-col rounded-2xl border p-4 shadow-sm sm:p-5"
+      data-tone={surfaceTone}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="line-clamp-2 text-[11px] leading-4 font-semibold text-slate-500 uppercase sm:text-xs sm:tracking-wide">{label}</p>
+        <p className="line-clamp-2 text-[11px] leading-4 font-semibold text-slate-600 uppercase sm:text-xs sm:tracking-wide">{label}</p>
         <span
-          className={`grid size-8 shrink-0 place-items-center rounded-lg ${
-            highlight ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500'
-          }`}
+          className="social-icon shrink-0"
         >
           <Icon className="size-4" aria-hidden="true" />
         </span>

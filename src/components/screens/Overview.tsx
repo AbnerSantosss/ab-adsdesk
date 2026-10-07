@@ -13,10 +13,12 @@ import {
 import {
   ArrowRight,
   BarChart3,
+  CalendarDays,
   Check,
   ChevronRight,
   Coins,
   Gauge,
+  MessageSquareText,
   ShieldCheck,
   Table2,
   Target,
@@ -25,24 +27,24 @@ import {
 } from 'lucide-react';
 import type { ActiveTab, AdAccount, ObjectiveFilter, ViewMode } from '../../types/metaAds';
 import {
-  PERIOD_LABEL,
   accountTotals,
   auditChecks,
   auditScore,
   breakdownByObjective,
-  chronological,
   cpa,
+  deltaPct,
   executiveSummary,
   flattenCreatives,
-  periodSummary,
+  sumDays,
   MIN_RESULTS_FOR_CHAMPION,
   pickChampion,
-  type Period,
 } from '../../lib/metrics';
+import { dateRangeDayCount, daysInRange, initialDateRange, shiftDate } from '../../lib/dateRange';
 import { OBJECTIVES, tone } from '../../lib/objectives';
 import {
   capitalize,
   formatCompact,
+  formatDate,
   formatDayLong,
   formatDayShort,
   formatDecimal,
@@ -52,7 +54,7 @@ import {
 } from '../../lib/format';
 import { Card } from '../ui/Card';
 import { KpiCard } from '../ui/KpiCard';
-import { PageHeader } from '../ui/PageHeader';
+import { DateRangeFilter } from '../ui/DateRangeFilter';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { CreativePreview } from '../ui/CreativePreview';
 import { Badge } from '../ui/Badge';
@@ -79,10 +81,25 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
   const hasCampaigns = account.campaigns.length > 0;
   const isManager = viewMode === 'MANAGER';
 
-  const [period, setPeriod] = useState<Period>(hasHistory ? 'LAST_7' : 'ALL');
+  const [range, setRange] = useState(() => initialDateRange(account.dailyHistory, account.isRealApi));
   const [chartView, setChartView] = useState<'CHART' | 'TABLE'>('CHART');
 
-  const summary = useMemo(() => periodSummary(account, period), [account, period]);
+  const selectedDays = useMemo(() => daysInRange(account.dailyHistory, range), [account.dailyHistory, range]);
+  const summary = useMemo(() => {
+    if (selectedDays.length === 0) return null;
+    const sum = sumDays(selectedDays);
+    const isSingleDay = range.start === range.end;
+    const previous = isSingleDay ? account.dailyHistory.find((day) => day.date === shiftDate(range.start, -1)) : undefined;
+    return {
+      ...sum,
+      reach: Math.round(sum.reach / selectedDays.length),
+      reachLabel: isSingleDay ? 'Pessoas alcançadas no dia' : 'Média por dia com dados',
+      delta: previous ? {
+        results: deltaPct(sum.results, previous.results),
+        cpa: deltaPct(sum.cpa, cpa(previous.spend, previous.results)),
+      } : undefined,
+    };
+  }, [account.dailyHistory, range, selectedDays]);
   const breakdown = useMemo(() => breakdownByObjective(account.campaigns), [account.campaigns]);
   const champion = useMemo(() => pickChampion(flattenCreatives(account.campaigns)), [account.campaigns]);
   const summaryLines = useMemo(() => executiveSummary(account), [account]);
@@ -90,22 +107,30 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
   const totals = useMemo(() => accountTotals(account), [account]);
   const chartData = useMemo<ChartRow[]>(
     () =>
-      chronological(account.dailyHistory).map((d) => ({
+      selectedDays.map((d) => ({
         date: d.date,
         label: formatDayShort(d.date),
         spend: d.spend,
         results: d.results,
         cpa: cpa(d.spend, d.results),
       })),
-    [account.dailyHistory],
+    [selectedDays],
   );
 
   const money = (value: number | null) => formatMoney(value, account.currency);
+  const rangeCaption = range.start === range.end ? formatDate(range.start) : `${formatDate(range.start)} a ${formatDate(range.end)}`;
+  const availableDates = account.dailyHistory.map((day) => day.date).sort();
+  const availableRange = hasHistory ? { start: availableDates[0], end: availableDates[availableDates.length - 1] } : undefined;
+  const missingDays = dateRangeDayCount(range) - selectedDays.length;
+  const rangeHint = missingDays > 0 ? `${selectedDays.length} dias com dados` : rangeCaption;
 
   if (!hasCampaigns && !hasHistory) {
     return (
       <div className="space-y-6">
-        <PageHeader title={account.businessName} description="Conta conectada pela Meta Graph API." />
+        <header className="rounded-2xl border border-slate-200 bg-white px-4 py-3 sm:px-5">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">{account.businessName}</h1>
+          <p className="mt-1 text-xs text-slate-600">Conta conectada pela Meta Graph API.</p>
+        </header>
         <ApiAccountNotice
           account={account}
           missing="as campanhas desta conta"
@@ -115,69 +140,56 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
     );
   }
 
-  const periodOptions = (['LAST_DAY', 'LAST_7', 'ALL'] as Period[])
-    .filter((p) => p === 'ALL' || hasHistory)
-    .map((p) => ({ value: p, label: PERIOD_LABEL[p] }));
-
   return (
     <div className="space-y-5 sm:space-y-6">
-      <PageHeader
-        title={account.businessName}
-        description={
-          <>
-            {account.businessType}
-            {summary && (
-              <>
-                <span className="mx-1.5 text-slate-300" aria-hidden="true">
-                  ·
-                </span>
-                {summary.caption}
-              </>
-            )}
-          </>
-        }
-        actions={
-          <SegmentedControl
-            ariaLabel="Período"
-            options={periodOptions}
-            value={period}
-            onChange={setPeriod}
-            className="w-full sm:w-auto"
-            stretch
-          />
-        }
-      />
+      <header className="grid min-w-0 grid-cols-1 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">{account.businessName}</h1>
+          <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
+            Instagram e Facebook <span aria-hidden="true">·</span> {account.isRealApi ? 'Período' : 'Amostra'}: {rangeCaption}
+          </p>
+        </div>
+        <DateRangeFilter value={range} onChange={setRange} availableRange={availableRange} />
+      </header>
 
-      {summary && (
+      <section aria-label="Indicadores do período selecionado" className="space-y-3">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-          <KpiCard label="Investimento" value={money(summary.spend)} icon={Coins} hint={PERIOD_LABEL[period]} />
+          <KpiCard label="Investimento" value={summary ? money(summary.spend) : '—'} icon={Coins} tone="neutral" hint={summary ? rangeHint : 'Sem dados no período'} />
           <KpiCard
             label={account.resultLabel}
-            value={formatNumber(summary.results)}
+            value={summary ? formatNumber(summary.results) : '—'}
             icon={Target}
+            tone="neutral"
             delta={
-              summary.delta && { value: summary.delta.results, goodWhen: 'up', label: 'vs. dia anterior' }
+              summary?.delta && { value: summary.delta.results, goodWhen: 'up', label: 'vs. dia anterior' }
             }
-            hint={!summary.delta ? 'somando todos os objetivos' : undefined}
+            hint={!summary ? 'Sem dados no período' : !summary.delta ? 'somando todos os objetivos' : undefined}
           />
           <KpiCard
             label="Custo por resultado"
-            value={money(summary.cpa)}
+            value={summary ? money(summary.cpa) : '—'}
             icon={Gauge}
-            highlight
-            delta={summary.delta && { value: summary.delta.cpa, goodWhen: 'down', label: 'vs. dia anterior' }}
-            hint={!summary.delta ? 'quanto menor, melhor' : undefined}
+            tone="neutral"
+            delta={summary?.delta && { value: summary.delta.cpa, goodWhen: 'down', label: 'vs. dia anterior' }}
+            hint={!summary ? 'Sem dados no período' : !summary.delta ? 'quanto menor, melhor' : undefined}
           />
-          <KpiCard label="Alcance" value={formatNumber(summary.reach)} icon={Users} hint={summary.reachLabel} />
+          <KpiCard label="Alcance" value={summary ? formatNumber(summary.reach) : '—'} icon={Users} tone="neutral" hint={summary ? summary.reachLabel : 'Sem dados no período'} />
         </div>
-      )}
+        {summary && missingDays > 0 && (
+          <p role="status" className="text-xs text-slate-600">
+            Há registros em {selectedDays.length} dos {dateRangeDayCount(range)} dias selecionados. Os totais consideram somente esses registros; dias sem dados não equivalem a zero.
+          </p>
+        )}
+      </section>
 
-      <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
-        {hasHistory && (
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
+        {(
           <Card
             className="lg:col-span-2"
+            tone="neutral"
+            icon={BarChart3}
             title="Investimento e resultados por dia"
-            description={`Últimos ${chartData.length} dias`}
+            description={rangeCaption}
             action={
               <SegmentedControl
                 ariaLabel="Forma de exibição"
@@ -191,7 +203,22 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
               />
             }
           >
-            {chartView === 'CHART' ? (
+            {chartData.length === 0 ? (
+              <div role="status" className="flex min-h-56 flex-col items-center justify-center rounded-xl bg-slate-50 p-5 text-center">
+                <CalendarDays className="size-6 text-slate-400" aria-hidden="true" />
+                <p className="mt-3 text-sm font-semibold text-slate-900">Sem dados neste período</p>
+                <p className="mt-1 max-w-sm text-xs leading-relaxed text-slate-600">
+                  {availableRange
+                    ? `O histórico disponível vai de ${formatDate(availableRange.start)} a ${formatDate(availableRange.end)}. Selecione essas datas no calendário para consultar a amostra.`
+                    : 'Ainda não há histórico diário. Os blocos identificados como acumulados continuam disponíveis abaixo.'}
+                </p>
+                {availableRange && (
+                  <button type="button" onClick={() => setRange(initialDateRange(account.dailyHistory, false))} className={buttonClass('secondary', 'sm', 'mt-4')}>
+                    Ver período disponível
+                  </button>
+                )}
+              </div>
+            ) : chartView === 'CHART' ? (
               <DailyChart data={chartData} currency={account.currency} resultLabel={account.resultLabel} />
             ) : (
               <DailyTable data={chartData} currency={account.currency} resultLabel={account.resultLabel} />
@@ -201,21 +228,22 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
 
         {breakdown.length > 0 && (
           <Card
-            className={hasHistory ? '' : 'lg:col-span-3'}
+            tone="neutral"
+            icon={Target}
             title="Resultados por tipo de campanha"
-            description="Desde o início. Toque para ver as campanhas."
+            description="Acumulado desde o início; não muda com o período acima."
           >
             <ul className="space-y-2">
               {breakdown.map((item) => {
                 const meta = OBJECTIVES[item.objective];
-                const t = tone(meta.tone);
+                const t = tone('slate');
                 const Icon = meta.icon;
                 return (
                   <li key={item.objective}>
                     <button
                       type="button"
                       onClick={() => onNavigate('CAMPAIGNS', item.objective)}
-                      className="group flex w-full items-center gap-3 rounded-xl border border-slate-200 p-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
+                      className="social-inset group flex w-full min-w-0 items-center gap-3 rounded-2xl border border-white/80 p-3 text-left transition hover:border-slate-300 hover:bg-white"
                     >
                       <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${t.icon}`}>
                         <Icon className="size-5" aria-hidden="true" />
@@ -227,7 +255,7 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
                             {formatNumber(item.results)}
                           </span>
                         </span>
-                        <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+                        <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-slate-900/5" aria-hidden="true">
                           <span
                             className={`block h-full rounded-full ${t.solid}`}
                             style={{ width: `${Math.max(2, item.share * 100)}%` }}
@@ -250,19 +278,21 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
         )}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
         {champion && (
           <Card
-            title="Anúncio destaque"
+            title="Criativo de melhor performance"
+            tone="neutral"
+            icon={Trophy}
             description={
               champion.leads >= MIN_RESULTS_FOR_CHAMPION && champion.status !== 'FATIGUE'
-                ? 'Menor custo por resultado com amostra suficiente'
-                : 'Ainda sem amostra suficiente: este é o de mais resultados'
+                ? 'Acumulado desde o início · Menor custo com amostra suficiente'
+                : 'Acumulado desde o início · Maior resultado, ainda sem amostra suficiente'
             }
           >
             <CreativePreview creative={champion} className="rounded-xl" />
             <p className="mt-3 flex gap-1.5 text-sm font-bold text-slate-900">
-              <Trophy className="mt-0.5 size-4 shrink-0 text-amber-500" aria-hidden="true" />
+              <Trophy className="mt-0.5 size-4 shrink-0 text-slate-600" aria-hidden="true" />
               <span className="line-clamp-2">{champion.name}</span>
             </p>
             <p className="mt-0.5 truncate text-xs text-slate-500">{champion.campaignName}</p>
@@ -285,13 +315,15 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
         {summaryLines.length > 0 && (
           <Card
             className={champion ? 'lg:col-span-2' : 'lg:col-span-3'}
+            tone="neutral"
+            icon={MessageSquareText}
             title="Em poucas palavras"
-            description="Resumo montado a partir dos números da conta"
+            description="Dados acumulados e último registro disponível; não muda com o filtro."
           >
             <ul className="space-y-3">
               {summaryLines.map((line) => (
-                <li key={line} className="flex gap-3 text-sm leading-relaxed text-slate-700">
-                  <span className="bg-brand-100 text-brand-700 mt-0.5 grid size-5 shrink-0 place-items-center rounded-full">
+                <li key={line} className="social-inset flex gap-3 rounded-xl p-3 text-sm leading-relaxed text-slate-700">
+                  <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600">
                     <Check className="size-3" aria-hidden="true" />
                   </span>
                   {line}
@@ -299,7 +331,7 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
               ))}
             </ul>
 
-            <div className="mt-5 flex flex-col gap-3 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-center">
+            <div className="social-inset mt-5 flex flex-col gap-3 rounded-2xl border border-white/80 p-4 sm:flex-row sm:items-center">
               <span className={`grid size-12 shrink-0 place-items-center rounded-full ${tone(audit.tone).icon}`}>
                 <ShieldCheck className="size-6" aria-hidden="true" />
               </span>
@@ -323,6 +355,8 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
       {isManager && hasCampaigns && (
         <Card
           title="Métricas técnicas"
+          tone="neutral"
+          icon={Gauge}
           description="Desde o início. Visíveis só para o gestor."
           action={<Badge tone="slate">Gestor</Badge>}
         >
@@ -342,7 +376,7 @@ export function Overview({ account, viewMode, onNavigate, onOpenConnect }: Overv
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-slate-50 px-2 py-2">
+    <div className="social-inset min-w-0 rounded-xl px-2 py-2.5">
       <dt className="text-[11px] font-medium text-slate-500">{label}</dt>
       <dd className="mt-0.5 truncate text-sm font-bold text-slate-900 tabular-nums">{value}</dd>
     </div>
@@ -351,10 +385,10 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function TechStat({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 p-3">
+    <div className="social-inset min-w-0 rounded-xl border border-white/80 p-3">
       <dt className="text-xs font-semibold text-slate-500">{label}</dt>
       <dd className="mt-1 text-lg font-bold text-slate-900 tabular-nums">{value}</dd>
-      <dd className="mt-0.5 text-[11px] leading-snug text-slate-400">{hint}</dd>
+      <dd className="mt-0.5 text-[11px] leading-snug text-slate-500">{hint}</dd>
     </div>
   );
 }
@@ -387,10 +421,10 @@ function DailyChart({ data, currency, resultLabel }: DailyViewProps) {
 
   return (
     <figure>
-      <div className="h-64 sm:h-72" aria-hidden="true">
+      <div className="social-inset h-64 rounded-2xl p-2 sm:h-72 sm:p-3" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: -8 }}>
-            <CartesianGrid vertical={false} stroke="#e2e8f0" />
+            <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="3 5" />
             <XAxis
               dataKey="label"
               tickLine={false}
@@ -416,14 +450,14 @@ function DailyChart({ data, currency, resultLabel }: DailyViewProps) {
               tick={{ fontSize: 11, fill: '#64748b' }}
             />
             <Tooltip content={renderTooltip} cursor={{ fill: '#f1f5f9' }} />
-            <Bar yAxisId="spend" dataKey="spend" fill="var(--brand-500)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+            <Bar yAxisId="spend" dataKey="spend" fill="#758399" radius={[7, 7, 0, 0]} maxBarSize={36} />
             <Line
               yAxisId="results"
               dataKey="results"
               type="monotone"
-              stroke="#0f172a"
-              strokeWidth={2}
-              dot={{ r: 3, fill: '#0f172a' }}
+              stroke="#172033"
+              strokeWidth={3}
+              dot={{ r: 4, fill: '#172033', stroke: '#fff', strokeWidth: 2 }}
               activeDot={{ r: 5 }}
             />
           </ComposedChart>
@@ -431,12 +465,12 @@ function DailyChart({ data, currency, resultLabel }: DailyViewProps) {
       </div>
       <figcaption className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
         <span className="inline-flex items-center gap-1.5">
-          <span className="bg-brand-500 size-2.5 rounded-sm" aria-hidden="true" />
-          Investimento (eixo à esquerda)
+          <span className="size-2.5 rounded-sm bg-[#758399]" aria-hidden="true" />
+          Barras: investimento (eixo à esquerda)
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-3 rounded bg-slate-900" aria-hidden="true" />
-          {resultLabel} (eixo à direita)
+          <span className="h-0.5 w-3 rounded bg-[#172033]" aria-hidden="true" />
+          Linha com pontos: {resultLabel} (eixo à direita)
         </span>
         <span className="sr-only">Troque para a visão em tabela para ler os valores de cada dia.</span>
       </figcaption>

@@ -1,6 +1,6 @@
 ---
 tipo: tela
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [tela, relatorio, diario, whatsapp, email, impressao]
 ---
 
@@ -14,7 +14,7 @@ tags: [tela, relatorio, diario, whatsapp, email, impressao]
 É a tela que cumpre a promessa central: "quanto foi gasto e quantas pessoas chamaram", sem o cliente precisar perguntar ([[visao-do-produto]]). Para o gestor, é a mensagem pronta para mandar todo dia.
 
 ## O que aparece
-1. **Cabeçalho** com o botão "Imprimir ou salvar PDF" (`window.print()`).
+1. **Cabeçalho** neutro, com foto local ilustrativa, "Instagram & Facebook" e o botão "Imprimir ou salvar PDF" (`window.print()`). A identificação das plataformas é contextual, sem dados separados por canal.
 2. **Faixa de dias:** um botão por dia do histórico, com data e investimento. O mais recente se chama "Último" e já vem selecionado; os outros mostram o dia da semana.
 3. **KPIs do dia:**
    - Investimento, com a dica "média dos N dias anteriores: R$ X";
@@ -26,6 +26,8 @@ tags: [tela, relatorio, diario, whatsapp, email, impressao]
    - "Abrir no WhatsApp": `wa.me/?text=`, e o gestor escolhe o contato;
    - "Copiar texto";
    - "Enviar por e-mail".
+
+Os quatro KPIs usam a mesma superfície branca e ícones grafite, sobre o fundo branco gelo da aplicação. Detalhamento, destaques e mensagem usam camadas neutras; o dia selecionado recebe o acento da marca. Cores de variação e estado continuam acompanhadas de texto. A ação WhatsApp conserva seu verde identificável. Essa apresentação conserva valores, comparação com dias anteriores, permissões de envio e impressão; não acrescenta envio automático. Ver [[cores-e-hierarquia-visual]].
 
 ## A mensagem (`dailyReportMessage`)
 Traz, com `*negrito*` do WhatsApp:

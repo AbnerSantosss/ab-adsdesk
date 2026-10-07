@@ -1,4 +1,4 @@
-import { CalendarDays, Clapperboard, LayoutDashboard, ListChecks, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { ChartNoAxesCombined, Instagram, House, Megaphone, ShieldCheck, Settings2, type LucideIcon } from 'lucide-react';
 import type { ActiveTab } from '../types/metaAds';
 
 export interface TabMeta {
@@ -9,14 +9,16 @@ export interface TabMeta {
   icon: LucideIcon;
   /** Trecho da URL (#campanhas), para o botão voltar e links diretos funcionarem. */
   slug: string;
+  managerOnly?: boolean;
 }
 
 export const TABS: TabMeta[] = [
-  { id: 'OVERVIEW', label: 'Visão geral', shortLabel: 'Início', icon: LayoutDashboard, slug: 'visao-geral' },
-  { id: 'CAMPAIGNS', label: 'Campanhas', shortLabel: 'Campanhas', icon: ListChecks, slug: 'campanhas' },
-  { id: 'CREATIVES', label: 'Anúncios', shortLabel: 'Anúncios', icon: Clapperboard, slug: 'anuncios' },
-  { id: 'DAILY_REPORTS', label: 'Relatório diário', shortLabel: 'Diário', icon: CalendarDays, slug: 'diario' },
+  { id: 'OVERVIEW', label: 'Visão geral', shortLabel: 'Início', icon: House, slug: 'visao-geral' },
+  { id: 'CAMPAIGNS', label: 'Campanhas', shortLabel: 'Campanhas', icon: Megaphone, slug: 'campanhas' },
+  { id: 'CREATIVES', label: 'Anúncios', shortLabel: 'Anúncios', icon: Instagram, slug: 'anuncios' },
+  { id: 'DAILY_REPORTS', label: 'Relatório diário', shortLabel: 'Diário', icon: ChartNoAxesCombined, slug: 'diario' },
   { id: 'AUDIT', label: 'Auditoria', shortLabel: 'Auditoria', icon: ShieldCheck, slug: 'auditoria' },
+  { id: 'SETTINGS', label: 'Configurações', shortLabel: 'Config.', icon: Settings2, slug: 'configuracoes', managerOnly: true },
 ];
 
 export function tabFromHash(hash: string): ActiveTab | null {

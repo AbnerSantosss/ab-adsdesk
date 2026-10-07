@@ -1,65 +1,100 @@
 ---
 tipo: integracao
-atualizado: 2026-09-25
-tags: [integracao, meta, graph-api, marketing-api, oauth, token]
+atualizado: 2026-10-07
+tags: [integracao, meta, graph-api, marketing-api, oauth, token, insights]
 ---
 
 # Meta Graph API (Marketing API)
 
-**Arquivo:** `src/services/metaGraphApi.ts`. É a única integração com a Meta, e hoje **só lê os dados básicos da conta**, sem alterar nada. Campanhas, anúncios e histórico diário ainda vêm do mock ([[o-que-e-simulado]]).
+**Implementação:** `src/services/metaGraphApi.ts`, contrato em `src/types/metaReport.ts`, conexão em `MetaConnectionPanel` e exibição em `MetaReports`. O gestor configura a conta em [[configuracoes]]. A integração faz consultas de leitura diretamente do navegador e importa relatórios; não cria, pausa ou altera anúncios.
 
-## O que existe hoje
-Uma chamada, feita direto do navegador pelo [[modal-conectar-meta]] e pelo botão **Atualizar** do cabeçalho:
-```
-GET https://graph.facebook.com/v23.0/{act_id}
-    ?fields=name,business_name,account_status,currency,amount_spent,timezone_name
-    &access_token={token}
-```
-| Função | O que faz |
-|---|---|
-| `fetchMetaAccount` | Valida token e ID, faz a chamada e traduz o erro da Meta em título e orientação |
-| `normalizeAccountId` | Aceita `act_123`, `123` ou `act_ 123`; exige pelo menos 5 dígitos |
-| `buildConnectedAccount` | Monta a conta com `isRealApi: true`, sem campanhas nem histórico, e um `apiSnapshot` (situação, gasto total, fuso, hora da leitura) |
-| `saveMetaConfig` / `getSavedMetaConfig` / `removeMetaConfig` | Guardam `{accessToken, adAccountId}` na chave `clareza_meta_api_config` |
+**Limite da evidência:** a implementação pode consultar uma conta autorizada, mas a revisão de 2026-10-07 não conectou uma conta real nem utilizou token do usuário. Testes com respostas controladas não demonstram acesso concedido pela Meta nem validam números de uma conta de produção.
 
-- A versão fica na constante `META_GRAPH_API_VERSION`, que o rodapé e o aviso exibem.
-- `amount_spent` vem na menor unidade da moeda. O código descobre as casas decimais da moeda com `Intl`, em vez de dividir por 100 às cegas.
-- `account_status` vira rótulo em pt-BR (Ativa, Desativada, Pagamento pendente...).
-- Erros com mensagem própria: 190 (token inválido ou expirado), 100 (conta não encontrada), 10 e 200 a 299 (permissão), 4, 17, 32 e 613 (limite de consultas) e falha de rede, que também cobre bloqueador de anúncios barrando `graph.facebook.com`.
-- Nas cinco telas, a conta real mostra o `ApiAccountNotice` (`src/components/screens/ApiAccountNotice.tsx`): o quadro "Dados lidos da Meta" e o aviso "Ainda não importamos...". Conta real nunca recebe número inventado.
+## Versão e contrato
 
-## Armadilhas
-- **Token no navegador:** vai na query string e fica no `sessionStorage`, ou no `localStorage` se o gestor marcar "Lembrar neste navegador". Serve para protótipo local, não para produção ([[seguranca]]).
-- **Token do Graph API Explorer expira em horas.** O modal orienta a criar um token de usuário do sistema no Business Manager, que não expira. Se o token sumiu (aba fechada sem "Lembrar"), o **Atualizar** pede para colar de novo.
-- **A conta conectada sempre vai para o `localStorage`** (`ab_adsdesk_connected_account`), mesmo sem "Lembrar": nome e gasto continuam na lista depois de fechar o navegador, só o token some ([[persistencia-localstorage]]).
-- **Versões da Graph API vencem** cerca de dois anos depois do lançamento. Para trocar, mude a constante e teste.
-- **Limite de consultas por conta (Business Use Case):** um painel que consulta a Meta a cada tela aberta, com muitos clientes, estoura o limite. Em produção, a leitura passa por cache no backend.
+`META_GRAPH_API_VERSION` está fixada em `v26.0`. A Meta lista o lançamento em 29/07/2026. Em 07/10/2026, a tabela da Marketing API mostra v25/v26 disponíveis e v24 encerrada em 06/10/2026. Não confundir esse ciclo com o da Graph API geral, que ainda lista v23 até 08/10/2027. [Changelog oficial](https://developers.facebook.com/docs/graph-api/changelog/).
 
-## Arquitetura recomendada para produção
-```mermaid
-flowchart LR
-    G[Gestor] -->|Facebook Login for Business| B[Backend]
-    B -->|System User| M[(Marketing API)]
-    J[Job agendado] --> B
-    B --> DB[(Snapshots diários)]
-    C[Cliente leigo] -->|login próprio| APP[Painel]
-    APP --> B
-    B -->|relatório diário| W[WhatsApp / e-mail]
-```
-1. O gestor conecta uma vez, com `ads_read` (e `ads_management` só se o produto for pausar campanhas). O token fica só no backend, criptografado; de preferência, de um **System User** da agência.
-2. Um job busca os insights e grava **snapshots diários**. O painel lê do banco, não da Meta.
-3. O cliente leigo nunca vê token; o backend filtra as contas a que ele tem direito ([[perfis-e-modos-de-visao]]).
-4. **App Review:** para contas de terceiros, o app precisa de verificação do negócio e de Advanced Access às permissões. Reserve prazo para isso.
+| Função | Responsabilidade |
+| --- | --- |
+| `fetchMetaAccount` | Consulta apenas metadados; mantida para consumidores que não precisam de insights |
+| `fetchMetaDashboard` | Consulta conta, totais, dias, campanhas, anúncios e metadados dos criativos; retorna sucesso somente após concluir todas as etapas |
+| `defaultMetaReportRange` | Monta os últimos 30 dias corridos inclusivos, terminando hoje no fuso da conta |
+| `normalizeAccountId` | Aceita números ou prefixo `act_`; exige pelo menos cinco dígitos |
+| `buildConnectedAccount` | Cria a conta real sem copiar campanhas ou histórico do mock |
+| `saveMetaConfig` / `getSavedMetaConfig` / `removeMetaConfig` | Gerenciam token em memória e `sessionStorage`; removem o legado persistente |
 
-## O que falta ler
-| Necessidade | Endpoint / campos |
-|---|---|
-| KPIs e série diária | `/{act_id}/insights?time_increment=1&fields=spend,reach,impressions,clicks,ctr,cpc,cpm,frequency,actions,cost_per_action_type` |
-| Campanhas | `/{act_id}/campaigns?fields=name,objective,status,effective_status,daily_budget,start_time` |
-| Conjuntos (público, raio) | `/{act_id}/adsets?fields=name,targeting,daily_budget,status,destination_type` |
-| Anúncios e criativos | `/{act_id}/ads?fields=name,status,creative{title,body,thumbnail_url,image_url,video_id,call_to_action_type}` |
-| Prévia real do anúncio | `/{ad_id}/previews?ad_format=...` |
+A conexão inicial importa 30 dias, incluindo o dia atual, que pode estar incompleto. Depois, o calendário pode solicitar outro intervalo, com máximo de 366 dias por importação. A mudança de período faz uma nova consulta: não recorta um total anterior e não soma alcances diários para produzir alcance único.
 
-O "resultado" por objetivo está em [[metricas-e-calculos]] e o formato dos dados em [[modelo-de-dados]]. A ordem de implementação fica em [[pontos-de-melhoria]].
+## O que é consultado
 
-> [!tip] O MCP de Meta Ads deste ambiente ajuda a explorar contas reais durante o desenvolvimento (validar campos e `action_type`), mas não substitui a integração do produto.
+Todas as requisições usam `GET https://graph.facebook.com/v26.0/...` e `Authorization: Bearer ...`. O token não entra na URL. O serviço não segue redirecionamentos e constrói as URLs em uma origem fixa.
+
+| Caminho | Consulta |
+| --- | --- |
+| `/{act_id}` | `id,name,business_name,account_status,currency,amount_spent,timezone_name` |
+| `/{act_id}/insights`, nível `account`, `time_increment=all_days` | Total do intervalo, inclusive alcance único da conta |
+| `/{act_id}/insights`, nível `account`, `time_increment=1` | Valores de cada dia retornado |
+| `/{act_id}/insights`, nível `campaign` | Métricas e identificação por campanha |
+| `/{act_id}/insights`, nível `ad` | Métricas e identificação por anúncio |
+| `/{act_id}/campaigns` | Nome, objetivo e estado efetivo atuais |
+| `/{act_id}/ads` | Nome, campanha, estado e `creative{id,name,title,body,image_url,thumbnail_url,video_id}` |
+
+Os insights pedem `date_start,date_stop,spend,impressions,clicks,reach,actions`, com `action_breakdowns=action_type` e `action_report_time=impression`. A janela de atribuição não é escolhida pelo usuário nesta interface. Comparações com o Gerenciador de Anúncios precisam conferir período, fuso, atribuição, coluna e nível de agregação equivalentes. Não há detalhamento por plataforma ou posicionamento; “Instagram e Facebook” identifica a integração, não dois resultados separados.
+
+Metadados de campanhas e anúncios não recebem o filtro de datas dos insights. O relatório une IDs encontrados nos metadados e nas métricas; portanto, pode listar objetos sem métricas no intervalo. Estado e objetivo são os atuais, não uma reconstrução histórica. Não são importados conjuntos, segmentações, públicos, orçamento diário, provas de Pixel/WhatsApp ou origem “Turbinar”.
+
+## Integridade dos números
+
+- Valores ausentes ou inválidos permanecem `null`; a interface usa travessão. Uma resposta vazia não vira zero nem recebe dados de exemplo.
+- Dias ausentes não são inventados. `isEmpty` significa que a consulta de total não retornou linhas.
+- Alcance do período vem de uma única linha de insights no nível da conta. Mais de uma linha nessa consulta causa erro, em vez de somar pessoas repetidas.
+- `amount_spent` é gasto desde a criação da conta, na menor unidade da moeda, convertido por `Intl`. O `spend` dos insights já é a unidade da moeda e pertence ao intervalo. Não misturar os dois.
+- Cliques, alcance, conversas, cadastros e compras são métricas distintas. O painel não os soma como “contatos únicos”.
+- `actions` conserva tipos retornados, elimina repetição do mesmo `action_type` e seleciona um alias por família; não soma aliases agregados e suas fontes.
+
+Prioridades atuais, na ordem:
+
+| Família | `action_type` selecionado |
+| --- | --- |
+| Conversas | `onsite_conversion.messaging_conversation_started_7d`, `onsite_conversion.messaging_conversation_started`, `messaging_conversation_started_7d` |
+| Cadastros | `lead`, `onsite_conversion.lead_grouped`, `offsite_conversion.fb_pixel_lead`, `onsite_conversion.lead` |
+| Compras | `omni_purchase`, `purchase`, `offsite_conversion.fb_pixel_purchase`, `app_custom_event.fb_mobile_purchase` |
+
+A primeira ação presente prevalece; seu valor pode continuar ausente. Essa seleção evita a soma conhecida de aliases sobrepostos, mas não é uma deduplicação de pessoas entre métricas. Novos tipos não reconhecidos permanecem em `actions` e não são reclassificados por suposição. Ver [[modelo-de-dados]].
+
+## Paginação, falhas e cancelamento
+
+O serviço solicita páginas de 100 linhas, percorre apenas `paging.cursors.after` e reconstrói a requisição. Nunca reutiliza `paging.next`, que pode conter token. Cada coleção tem limite de 100 páginas e 10.000 linhas; atingir o limite causa erro explícito, sem truncar nem aplicar parte do relatório.
+
+Uma requisição tem prazo de 30 segundos; a importação inteira, três minutos. Datas inválidas, IDs duplicados, datas repetidas, respostas malformadas e cursores ausentes/repetidos interrompem a operação. Não há consulta assíncrona de relatórios grandes nem repetição automática das chamadas.
+
+Fechar a tela de conexão cancela a importação. Sair ou desconectar cancela a atualização. Uma falha de atualização preserva o último snapshot concluído; a interface informa que os dados anteriores continuam visíveis. Os códigos de erro são traduzidos para token, permissão, consulta recusada, limite ou indisponibilidade. A mensagem remota bruta não é exibida, pois pode repetir parâmetros sensíveis.
+
+## Token, armazenamento e permissões
+
+O token fica em memória e em `sessionStorage`, na chave `clareza_meta_api_config`. Não existe mais “Lembrar neste navegador” para credenciais. Ao ler a configuração, a implementação remove o registro legado de token no `localStorage` sem ler ou migrar seu conteúdo. Sair e desconectar removem credenciais e snapshot da conta conectada.
+
+O snapshot sem token fica em `ab_adsdesk_connected_account` no `localStorage`, para reabrir a última importação. Fechar a aba não apaga esse snapshot. Ele não é um banco seguro, não sincroniza computadores e não comprova que o token continua válido. Se a sessão acabar, o gestor precisa informar novamente o token para atualizar. O armazenamento do navegador pode ser bloqueado ou ficar sem espaço; nesse caso, a cópia em memória continua durante a execução, sem garantia de persistência.
+
+O escopo necessário é `ads_read`, além do acesso do titular do token à conta. O usuário do sistema precisa receber o ativo e a tarefa de análise; um token válido com escopo correto pode não ter acesso à conta escolhida. Não é preciso pedir `ads_management` para este painel de leitura. [Permissões de usuário do sistema](https://developers.facebook.com/docs/marketing-api/businessmanager/systemuser/permissions), [autorização da Marketing API](https://developers.facebook.com/documentation/ads-commerce/marketing-api/get-started/authorization).
+
+Conta própria e acesso a contas de terceiros têm requisitos distintos. Standard/Advanced Access são níveis das permissões; o Marketing API Access Tier Limited/Full é outro mecanismo, ligado a limites e capacidade. Apps para clientes precisam cumprir revisão e requisitos aplicáveis, inclusive verificação empresarial para Advanced Access. Um token colado no painel não substitui essas aprovações. [Autorização, atualizada em 05/05/2026](https://developers.facebook.com/documentation/ads-commerce/marketing-api/get-started/authorization), [referência de permissões](https://developers.facebook.com/docs/permissions/reference/ads_read/).
+
+Tokens podem expirar ou ser revogados. Tokens curtos de usuário geralmente duram uma ou duas horas; conferir o valor real no depurador. A documentação detalhada de sistema recomenda validade de 60 dias, e algumas empresas precisam obrigatoriamente usá-la. “Sem data de expiração”, quando disponível, não significa irrevogável. O painel não renova tokens. [Autenticação, atualizada em 24/06/2026](https://developers.facebook.com/documentation/ads-commerce/marketing-api/get-started/authentication), [geração, renovação e revogação de tokens](https://developers.facebook.com/docs/marketing-api/system-users/install-apps-and-generate-tokens).
+
+## Telas e limites de produto
+
+`App.tsx` encaminha contas reais para `MetaReports` nas cinco abas de análise. As contas de demonstração continuam usando suas telas próprias. Contas antigas, sem `apiReport`, recebem orientação para importar em Configurações.
+
+- Visão geral real: investimento, impressões, cliques, alcance único, investimento diário e ações separadas. O destaque é o anúncio com mais cliques, com esse critério escrito; não se apresenta como o melhor anúncio de conversão.
+- Campanhas e anúncios reais: métricas importadas e estado atual. Prévias usam imagem ou miniatura devolvida pela Meta; se ausentes ou em erro, mostram indisponibilidade. Não entram fotos ilustrativas locais como substitutas.
+- Diário real: tabela e impressão/PDF do navegador. Não oferece envio por e-mail ou WhatsApp nesta versão.
+- Auditoria real: mostra a última leitura concluída; Pixel, WhatsApp e origem “Turbinar” ficam não verificados. Não calcula nota automática de saúde com dados ausentes.
+
+Só cabe uma conta real por vez; conectar outra substitui a anterior no navegador. A configuração é acessível ao gestor na visão de gestor; o cliente e “ver como cliente” não recebem formulário nem atualização. Essas guardas são de interface: o login continua sendo demonstração, sem autorização no servidor.
+
+Não há backend Meta, OAuth/Login com Facebook, armazenamento cifrado de tokens, agendamento, sincronização multiusuário ou validação de produção. Para produção, esses recursos precisam ser implementados no servidor, com autorização por conta e política de retenção. A integração de SMTP existente é separada e não resolve esses pontos. Ver [[configuracoes]] e [[o-que-e-simulado]].
+
+## Referências oficiais e data da pesquisa
+
+As páginas Meta acima foram verificadas em **07/10/2026**; quando a ferramenta de busca recebeu 429, a consulta pública HTTP direta retornou o conteúdo oficial. A [coleção oficial Meta no Postman](https://www.postman.com/meta/facebook-marketing-api/collection/0zr4mes/facebook-marketing-api-mapi) foi usada como apoio para requisitos e ID da conta. Em divergência sobre duração de token ou nomenclatura, prevalecem as páginas específicas atuais da Meta, não uma promessa genérica de token permanente.

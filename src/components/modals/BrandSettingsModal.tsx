@@ -16,6 +16,7 @@ interface BrandSettingsModalProps {
 }
 
 const COLORS: { value: BrandColor; label: string }[] = [
+  { value: 'social', label: 'Social' },
   { value: 'emerald', label: 'Verde' },
   { value: 'indigo', label: 'Índigo' },
   { value: 'blue', label: 'Azul' },

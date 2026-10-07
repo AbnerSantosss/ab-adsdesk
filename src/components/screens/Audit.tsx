@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ArrowRight, CircleAlert, CircleCheck, CircleX, Quote, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CircleAlert, CircleCheck, CircleX, Layers3, Quote, ShieldCheck } from 'lucide-react';
 import type { ActiveTab, AdAccount, ObjectiveFilter, ViewMode } from '../../types/metaAds';
 import {
   accountTotals,
@@ -43,11 +43,12 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
   const score = useMemo(() => auditScore(checks), [checks]);
   const comparison = useMemo(() => structureComparison(account.campaigns), [account.campaigns]);
   const averageCpa = useMemo(() => accountTotals(account).cpa, [account]);
+  const headerImage = account.campaigns.flatMap((campaign) => campaign.creatives).find((creative) => creative.previewImage)?.previewImage;
 
   if (account.campaigns.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Auditoria" />
+        <PageHeader title="Auditoria" eyebrow="Instagram & Facebook" tone="neutral" />
         <ApiAccountNotice account={account} missing="os dados necessários para a auditoria" />
       </div>
     );
@@ -60,12 +61,16 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
         title="Auditoria"
+        eyebrow="Instagram & Facebook"
+        tone="neutral"
+        image={headerImage ? { src: headerImage.src, alt: headerImage.description } : undefined}
         description="Checagem automática de como a verba está sendo usada: estrutura das campanhas, rastreamento e desgaste dos anúncios."
       />
 
       <section
         aria-labelledby="nota-auditoria"
-        className="grid grid-cols-1 gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8"
+        className="social-surface social-audit-score grid grid-cols-1 gap-5 rounded-3xl border p-4 sm:p-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8"
+        data-tone="neutral"
       >
         <div className="flex flex-col items-center justify-center text-center">
           <ScoreRing score={score.score} toneName={score.tone} />
@@ -80,14 +85,16 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
           </p>
         </div>
 
-        <ul className="divide-y divide-slate-100">
+        <ul className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
           {checks.map((check) => (
-            <li key={check.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
-              {check.ok ? (
-                <CircleCheck className="mt-0.5 size-5 shrink-0 text-emerald-600" aria-hidden="true" />
-              ) : (
-                <CircleAlert className="mt-0.5 size-5 shrink-0 text-amber-600" aria-hidden="true" />
-              )}
+            <li key={check.id} className="social-surface flex min-w-0 gap-3 rounded-2xl border p-3.5" data-tone="neutral">
+              <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${check.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}`}>
+                {check.ok ? (
+                  <CircleCheck className="size-5" aria-hidden="true" />
+                ) : (
+                  <CircleAlert className="size-5" aria-hidden="true" />
+                )}
+              </span>
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-x-2 text-sm font-semibold text-slate-900">
                   {check.label}
@@ -102,8 +109,10 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
       </section>
 
       {account.audit.managerNote && (
-        <figure className="bg-brand-50 ring-brand-100 rounded-2xl p-4 ring-1 sm:p-5">
-          <Quote className="text-brand-300 size-5" aria-hidden="true" />
+        <figure className="social-surface rounded-3xl border p-4 sm:p-5" data-tone="neutral">
+          <span className="social-icon grid size-10 place-items-center rounded-2xl" data-tone="neutral">
+            <Quote className="size-5" aria-hidden="true" />
+          </span>
           <blockquote className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
             {account.audit.managerNote}
           </blockquote>
@@ -113,6 +122,8 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
 
       <Card
         title="Estrutura das campanhas"
+        tone="neutral"
+        icon={Layers3}
         description="Onde a verba está: campanhas montadas no Gerenciador ou posts turbinados pelo Instagram"
         flush
       >
@@ -120,7 +131,7 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
           <table className="w-full text-sm">
             <caption className="sr-only">Estrutura de cada campanha da conta</caption>
             <thead>
-              <tr className="border-b border-slate-200 text-left text-xs font-semibold text-slate-500">
+              <tr className="border-b border-slate-200 bg-white/35 text-left text-xs font-semibold text-slate-600">
                 <th scope="col" className="px-5 py-2">
                   Campanha
                 </th>
@@ -144,7 +155,7 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
                 const health = cpaHealth(t.cpa, averageCpa);
                 const status = CAMPAIGN_STATUS[c.status];
                 return (
-                  <tr key={c.id} className="align-top">
+                  <tr key={c.id} className="bg-white/25 align-top">
                     <th scope="row" className="max-w-xs px-5 py-3 text-left font-normal">
                       <span className="line-clamp-2 font-semibold text-slate-900">{c.name}</span>
                       <span className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
@@ -177,7 +188,7 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
             const t = campaignTotals(c);
             const status = CAMPAIGN_STATUS[c.status];
             return (
-              <li key={c.id} className="px-4 py-3">
+              <li key={c.id} className="bg-white/25 px-4 py-3">
                 <p className="line-clamp-2 text-sm font-semibold text-slate-900">{c.name}</p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <StructureBadge professional={c.isProfessionalStructure} />
@@ -208,7 +219,7 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <ComparisonCard
             title="Campanhas estruturadas"
-            toneName="emerald"
+            toneName="slate"
             icon={CircleCheck}
             side={comparison.professional}
             currency={account.currency}
@@ -216,7 +227,7 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
           />
           <ComparisonCard
             title="Posts turbinados"
-            toneName="rose"
+            toneName="slate"
             icon={CircleX}
             side={comparison.boosted}
             currency={account.currency}
@@ -225,9 +236,11 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
         </div>
       </section>
 
-      <div className="flex flex-col items-start gap-3 rounded-2xl bg-slate-900 p-5 text-white sm:flex-row sm:items-center sm:justify-between">
+      <div className="social-dark-panel flex flex-col items-start gap-4 rounded-3xl p-5 text-white sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
-          <ShieldCheck className="text-brand-300 mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white/10 text-slate-200">
+            <ShieldCheck className="size-6" aria-hidden="true" />
+          </span>
           <p className="text-sm text-slate-200">
             Todo dia, o investimento e os resultados ficam registrados no relatório diário, com a mensagem pronta para
             o cliente.
@@ -247,14 +260,14 @@ export function Audit({ account, viewMode, onNavigate }: AuditProps) {
 }
 
 function StructureBadge({ professional }: { professional: boolean }) {
-  return professional ? <Badge tone="emerald">Gerenciador</Badge> : <Badge tone="amber">Post turbinado</Badge>;
+  return professional ? <Badge tone="slate">Gerenciador</Badge> : <Badge tone="slate">Post turbinado</Badge>;
 }
 
 function ScoreRing({ score, toneName }: { score: number; toneName: ToneName }) {
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
   return (
-    <div className="relative size-32" role="img" aria-label={`Nota ${score} de 100`}>
+    <div className="relative size-36 rounded-full bg-white/70 p-1 shadow-sm" role="img" aria-label={`Nota ${score} de 100`}>
       <svg viewBox="0 0 100 100" className="size-full -rotate-90">
         <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="9" className="stroke-slate-100" />
         <circle
@@ -272,7 +285,7 @@ function ScoreRing({ score, toneName }: { score: number; toneName: ToneName }) {
       </svg>
       <span className="absolute inset-0 grid place-items-center" aria-hidden="true">
         <span className="text-center">
-          <span className="block text-3xl font-extrabold text-slate-900 tabular-nums">{score}</span>
+          <span className="block text-4xl font-extrabold text-slate-900 tabular-nums">{score}</span>
           <span className="block text-[11px] font-semibold text-slate-400">de 100</span>
         </span>
       </span>
@@ -292,10 +305,10 @@ interface ComparisonCardProps {
 function ComparisonCard({ title, toneName, icon: Icon, side, currency, items }: ComparisonCardProps) {
   const t = tone(toneName);
   return (
-    <article className={`rounded-2xl border bg-white p-4 shadow-sm sm:p-5 ${t.border}`}>
+    <article className="social-surface min-w-0 rounded-3xl border p-4 sm:p-5" data-tone="neutral">
       <div className="flex items-center gap-3">
-        <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${t.icon}`}>
-          <Icon className="size-5" aria-hidden="true" />
+        <span className={`grid size-12 shrink-0 place-items-center rounded-2xl ${t.icon}`}>
+          <Icon className="size-6" aria-hidden="true" />
         </span>
         <div className="min-w-0">
           <h3 className="text-sm font-bold text-slate-900 sm:text-base">{title}</h3>
@@ -306,7 +319,7 @@ function ComparisonCard({ title, toneName, icon: Icon, side, currency, items }: 
       </div>
 
       {side.count > 0 && (
-        <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center">
+        <dl className="social-inset mt-4 grid grid-cols-3 gap-2 rounded-2xl p-3 text-center">
           <div className="min-w-0">
             <dt className="text-[11px] font-medium text-slate-500">Investido</dt>
             <dd className="truncate text-sm font-bold text-slate-900 tabular-nums">{formatMoney(side.spend, currency)}</dd>

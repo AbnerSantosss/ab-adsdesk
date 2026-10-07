@@ -3,6 +3,7 @@ import { ArrowRight, Eye, EyeOff, FileText, LogIn, MessageCircle, ShieldCheck, Z
 import { demoUsers, roleLabel, type BrandConfig, type User } from '../../types/auth';
 import { BrandLogo } from '../ui/BrandLogo';
 import { buttonClass } from '../ui/button';
+import { SocialChannels } from '../ui/SocialChannels';
 
 interface LoginScreenProps {
   brand: BrandConfig;
@@ -18,11 +19,8 @@ const HIGHLIGHTS = [
 // Entrada rápida da demonstração: só o gestor, que vê tudo e pode abrir a visão do cliente pelo menu.
 const QUICK_LOGIN_USER = demoUsers.find((u) => u.role === 'AGENCY_MANAGER') ?? demoUsers[0];
 
-// Barras do exemplo do painel lateral (valores ilustrativos).
-const SAMPLE_BARS = [38, 52, 44, 61, 57, 72, 66];
-
 const inputClass =
-  'focus:border-brand-500 focus:ring-brand-100 h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-base text-slate-900 placeholder:text-slate-400 focus:ring-4 focus:outline-none sm:text-sm';
+  'h-12 w-full rounded-xl border border-slate-400 bg-white px-3.5 text-base text-slate-900 placeholder:text-slate-500 focus:border-brand-700 focus:ring-2 focus:ring-brand-700 focus:outline-none sm:text-sm';
 
 export function LoginScreen({ brand, onLogin }: LoginScreenProps) {
   const [email, setEmail] = useState('');
@@ -56,71 +54,70 @@ export function LoginScreen({ brand, onLogin }: LoginScreenProps) {
   };
 
   return (
-    <div className="grid min-h-dvh grid-cols-1 bg-slate-50 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-      <aside className="relative hidden overflow-hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col xl:p-14">
-        <div
-          className="bg-brand-600/25 pointer-events-none absolute -top-40 -left-32 size-[32rem] rounded-full blur-3xl"
-          aria-hidden="true"
-        />
-        <div className="relative">
+    <div className="social-app grid min-h-dvh grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <aside className="relative hidden min-w-0 overflow-hidden bg-[#253044] p-8 text-white lg:flex lg:flex-col xl:p-12">
+        <div className="relative flex items-center justify-between gap-4">
           <BrandLogo brand={brand} size="lg" inverted />
+          <span className="rounded-full border border-white/20 px-3 py-1.5 text-[10px] font-bold tracking-[0.14em] text-white/70 uppercase">Social ads</span>
         </div>
 
-        <div className="relative my-auto max-w-lg py-10">
-          <h2 className="text-3xl leading-tight font-bold tracking-tight xl:text-4xl">
-            Cada real investido em anúncios, explicado para o cliente.
+        <div className="relative mx-auto my-auto w-full max-w-xl py-10">
+          <p className="text-xs font-bold tracking-[0.16em] text-slate-300 uppercase">Instagram & Facebook</p>
+          <h2 className="mt-4 max-w-lg text-4xl leading-[1.08] font-bold tracking-tight xl:text-5xl">
+            Suas campanhas.<br />
+            <span className="text-white">Uma visão clara.</span>
           </h2>
-          <p className="mt-4 text-base text-slate-300">{brand.tagline}</p>
+          <p className="mt-5 max-w-md text-base leading-relaxed text-slate-300">Cada real investido em anúncios, explicado para o cliente.</p>
+          <p className="mt-2 max-w-md text-xs leading-relaxed text-slate-400">{brand.tagline}</p>
 
-          <ul className="mt-8 space-y-4">
+          <figure className="relative mt-7 overflow-hidden rounded-[1.5rem] border border-white/15 bg-slate-800">
+            <img
+              src="/images/brand/social-studio.webp"
+              alt="Estúdio criativo com celular, câmera e computador para produção de conteúdo"
+              width={1024}
+              height={683}
+              className="h-52 w-full object-cover object-[75%_50%] xl:h-60"
+            />
+            <figcaption className="flex items-center gap-3 p-4">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/10 text-slate-200">
+                <MessageCircle className="size-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">Do anúncio ao resultado.</p>
+                <p className="mt-0.5 text-xs text-slate-300">Criativos, investimento e contatos no mesmo painel.</p>
+              </div>
+            </figcaption>
+          </figure>
+
+          <ul className="mt-6 space-y-3">
             {HIGHLIGHTS.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex gap-3 text-sm text-slate-200">
-                <span className="bg-brand-500/15 text-brand-300 grid size-8 shrink-0 place-items-center rounded-lg">
+              <li key={text} className="flex items-center gap-3 text-xs leading-relaxed text-slate-300">
+                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white/10 text-slate-200">
                   <Icon className="size-4" aria-hidden="true" />
                 </span>
-                <span className="pt-1.5">{text}</span>
+                <span>{text}</span>
               </li>
             ))}
           </ul>
-
-          <figure className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs text-slate-400">Contatos na semana</p>
-                <p className="mt-1 text-2xl font-bold tabular-nums">390</p>
-              </div>
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
-                Exemplo
-              </span>
-            </div>
-            <div className="mt-4 flex h-16 items-end gap-2" aria-hidden="true">
-              {SAMPLE_BARS.map((h, i) => (
-                <span
-                  key={i}
-                  className={`flex-1 rounded-t-md ${i === SAMPLE_BARS.length - 1 ? 'bg-brand-400' : 'bg-white/15'}`}
-                  style={{ height: `${h}%` }}
-                />
-              ))}
-            </div>
-            <figcaption className="mt-3 text-[11px] text-slate-500">Ilustração com dados de demonstração.</figcaption>
-          </figure>
         </div>
 
         {brand.showPoweredBy && (
-          <p className="relative text-xs text-slate-500">Desenvolvido por {brand.parentBrand}</p>
+          <p className="relative text-xs text-slate-400">Desenvolvido por {brand.parentBrand}</p>
         )}
       </aside>
 
-      <main className="flex items-center justify-center px-4 py-10 sm:px-8">
-        <div className="w-full max-w-sm">
+      <main className="flex min-w-0 items-center justify-center px-4 py-8 sm:px-8 lg:py-12">
+        <div className="w-full max-w-[27rem]">
           <div className="mb-8 lg:hidden">
             <BrandLogo brand={brand} size="lg" />
           </div>
 
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Entrar no painel</h1>
-          <p className="mt-1 text-sm text-slate-500">Acompanhe campanhas, contatos gerados e a auditoria da conta.</p>
+          <SocialChannels className="mb-7" />
+          <p className="social-section-label mb-2 text-xs font-bold tracking-widest uppercase">Seu espaço de resultados</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Entrar no painel</h1>
+          <p className="mt-2 text-sm leading-relaxed text-slate-500">Acompanhe campanhas, contatos gerados e a auditoria da conta.</p>
 
-          <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-4">
             <div>
               <label htmlFor={emailId} className="text-sm font-semibold text-slate-700">
                 E-mail
@@ -166,7 +163,7 @@ export function LoginScreen({ brand, onLogin }: LoginScreenProps) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-slate-700">
                 <input
                   type="checkbox"
@@ -209,9 +206,10 @@ export function LoginScreen({ brand, onLogin }: LoginScreenProps) {
             <button
               type="button"
               onClick={() => onLogin(QUICK_LOGIN_USER, remember)}
-              className="group mt-4 flex min-h-14 w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+              className="social-surface group mt-4 flex min-h-16 w-full items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-left shadow-sm transition hover:border-slate-400"
+              data-tone="neutral"
             >
-              <span className="bg-brand-50 text-brand-700 grid size-9 shrink-0 place-items-center rounded-lg">
+              <span className="social-icon shrink-0">
                 <Zap className="size-4" aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
@@ -227,7 +225,7 @@ export function LoginScreen({ brand, onLogin }: LoginScreenProps) {
             </button>
           </section>
 
-          <p className="mt-8 text-center text-sm text-slate-500">
+          <p className="mt-7 text-center text-sm text-slate-500">
             Ainda não tem acesso?{' '}
             <a
               href={whatsappLink(`Olá! Quero conhecer o ${brand.appName}.`)}

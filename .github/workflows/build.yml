@@ -24,6 +24,8 @@ jobs:
 
       - run: npm ci --no-audit --no-fund
       - run: npm run lint
+      - run: npm test
+      - run: npm run wiki:check
 
       - uses: docker/setup-buildx-action@v3
 

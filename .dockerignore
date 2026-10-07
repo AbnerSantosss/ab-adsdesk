@@ -4,5 +4,6 @@ dist
 .git
 .claude
 .impeccable
+output
 wiki
 *.md

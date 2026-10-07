@@ -1,12 +1,12 @@
 ---
 tipo: conceito
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [dados, metricas, calculos, cpa, regras]
 ---
 
 # Métricas e cálculos
 
-Todo número derivado sai de `src/lib/metrics.ts` (as contas), `src/lib/objectives.ts` (rótulos, unidades e cores de cada objetivo) e `src/lib/format.ts` (exibição em pt-BR). As telas não fazem conta própria, e o mock guarda só números brutos ([[dados-mock]], [[modelo-de-dados]]).
+Os cálculos da demonstração estão principalmente em `src/lib/metrics.ts`, com rótulos/unidades em `src/lib/objectives.ts` e formatação em `src/lib/format.ts`. A Visão geral agrega o intervalo escolhido usando `src/lib/dateRange.ts` e suas linhas de histórico. Contas reais usam `MetaReportSnapshot`, importado por `src/services/metaGraphApi.ts`, e não reutilizam os totais do mock. Ver [[dados-mock]], [[modelo-de-dados]] e [[meta-graph-api]].
 
 Mudou em 2026-09-25: saíram as faixas fixas de CPA (≤ 6 e ≤ 10), a meta de R$ 8, os fatores 0,55 e 0,5, o rateio diário inventado e o "+18,4%" escrito à mão. Tudo agora é calculado a partir dos dados.
 
@@ -26,10 +26,10 @@ A função `ratio` devolve `null` quando o denominador é ≤ 0, então nunca ap
 ## Totais e períodos
 
 - `accountTotals` soma as campanhas. Para o **alcance**, usa `account.uniqueReach` quando existe, porque somar o alcance das campanhas conta a mesma pessoa várias vezes.
-- `periodSummary` alimenta a [[visao-geral]] com três períodos:
-  - "Desde o início" (`ALL`): os totais da conta.
-  - "Último dia" (`LAST_DAY`): `dailyHistory[0]`, com variação contra `dailyHistory[1]`.
-  - "7 dias" (`LAST_7`): soma de gasto e resultados. O alcance é a **média por dia** ("Alcance médio por dia"), porque somar alcances diários não faz sentido.
+- A [[visao-geral]] usa **Hoje**, **Ontem**, **Últimos 7 dias** e calendário **De/Até** (`DateRangeFilter`). Os presets seguem o dia do navegador; a demonstração começa explicitamente no intervalo disponível da amostra, não finge que setembro é hoje.
+- `daysInRange` filtra as datas inclusivas e ordena os dias para o gráfico. KPIs e gráfico usam o mesmo recorte. Sem registros, mostram ausência de dados, não zero. Com lacunas, os totais usam os registros existentes e informam quantos dias têm dados.
+- Um único dia mostra seu alcance; vários dias mostram a **média de alcance dos dias com registros**. Esse valor não é alcance único do período. Variações de resultado/CPA de um único dia só aparecem se o dia anterior de calendário existir no histórico.
+- `periodSummary` permanece como auxiliar legado (`ALL`, `LAST_DAY`, `LAST_7`), mas não controla o calendário atual da Visão geral. Seu `LAST_DAY` ainda depende da ordem decrescente da lista.
 - `breakdownByObjective` junta as campanhas desde o início (Visão geral). `breakdownDays` junta o `byObjective` dos dias ([[relatorio-diario]]). Nos dois, `share` é a fração dos resultados, na ordem de `OBJECTIVE_ORDER`.
 
 ## Selos e notas
@@ -61,21 +61,22 @@ A função `ratio` devolve `null` quando o denominador é ≤ 0, então nunca ap
   - `formatDelta` usa o sinal tipográfico "−" e tira o sinal do valor **já arredondado**: −0,3% vira "0%", não "−0%". O `KpiCard` trata abaixo de 0,5 ponto como estável (cinza, seta para o lado).
   - `parseISODate` monta a data local, o que impede "2026-09-23" de virar dia 22 por causa do UTC.
 
-## Como obter da Meta (produção)
+## Relatórios reais importados da Meta
 
-- **Endpoint:** `GET /{act_id}/insights`, com `level` (`account`, `campaign`, `adset` ou `ad`), `time_range` e `time_increment=1` para a série diária.
-- **Campos:** `spend`, `impressions`, `reach`, `clicks`, `frequency`, `actions`, `cost_per_action_type` e `objective`.
-- **"Resultado" por `action_type`:**
-  - mensagens: `onsite_conversion.messaging_conversation_started_7d`;
-  - cadastros: `lead`;
-  - tráfego: `link_click`;
-  - conversões: o evento do pixel.
-- **Alcance único:** o da semana exige uma consulta própria, sem `time_increment`. Ver [[meta-graph-api]].
+O contrato atual e as consultas exatas estão em [[meta-graph-api]]. A conexão em [[configuracoes]] importa totais, dias, campanhas, anúncios e criativos para `apiReport`; a interface `MetaReports` mantém conversas, cadastros, compras, cliques e alcance separados.
+
+- O período real usa `since`/`until` no fuso da conta. A primeira importação traz 30 dias; outra faixa exige nova consulta e tem limite de 366 dias.
+- Alcance único vem do total no nível da conta, com `time_increment=all_days`; não é soma de campanhas/dias nem média diária.
+- Ausência de valor permanece `null`; ausência de linhas não comprova zero. `actions` escolhe um alias por família e não soma aliases sobrepostos. Não há deduplicação universal de pessoas entre famílias.
+- CPA genérico da conta, nota de saúde, comparativo "Turbinar" e classificação de desgaste do mock não são calculados sobre a conta real. O destaque real é explicitamente o anúncio com mais cliques.
+- Alterar o intervalo mantém o último snapshot visível até uma importação inteira concluir. Uma falha não troca o período exibido nem aplica números parciais. Impressão usa esse snapshot concluído.
+
+Essas regras estão implementadas e cobertas por testes com respostas controladas; não houve validação de uma conta do usuário ao vivo nesta revisão. Conferir colunas, atribuição, fuso e período no Gerenciador é parte da validação real.
 
 ## Armadilhas
 
 - **Comparar com os dias anteriores, nunca com a série inteira.** Até 2026-09-25 o Diário usava os 7 dias mais recentes, que incluíam o próprio dia e, para um dia antigo, dias posteriores. Qualquer média nova deve usar `weekBefore`.
-- **Ordem do histórico.** `LAST_DAY` usa `dailyHistory[0]` e `[1]` e assume ordem decrescente de data. Ao mapear a API real, ordene.
-- **"Dia anterior" pode não ser ontem.** `LAST_DAY` compara com o item anterior da lista; se faltar um dia no histórico, a comparação pula o buraco.
-- **Unidades misturadas.** O "resultado" soma conversas, cadastros e "contatos" de REACH e TRAFFIC (TRAFFIC usa a unidade "contato" para cliques). O `share`, o CPA da conta e o [[simulador-roi]] misturam essas unidades ([[bugs-conhecidos]]).
+- **Ordem do histórico.** O `LAST_DAY` legado usa posições da lista; o calendário atual filtra/ordena por data e `weekBefore` também ordena antes de selecionar dias anteriores. Não atribuir a eles a limitação do auxiliar antigo.
+- **Recortes distintos, identificados.** O calendário filtra os KPIs e o gráfico da demonstração. Objetivos, criativo campeão, resumo e métricas técnicas têm rótulos explícitos de acumulado/último registro. Não apresentar esses blocos como pertencentes à faixa selecionada.
+- **Unidades misturadas no mock.** O "resultado" soma conversas, cadastros e "contatos" de REACH e TRAFFIC (TRAFFIC usa a unidade "contato" para cliques). O `share`, o CPA da conta e o [[simulador-roi]] ainda misturam essas unidades ([[bugs-conhecidos]]). A conta real usa famílias separadas; o simulador ainda não consome `apiReport` e exige premissas manuais.
 - **Dias no ar.** O "N dias no ar" dos cards de Campanhas conta até o último dia com dados da conta (`dailyHistory[0]`), não até hoje; assim o mock não "envelhece". Sem histórico, cai na data de hoje.

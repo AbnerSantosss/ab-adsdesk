@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Check, Coins, Copy, Gauge, Mail, Megaphone, MessageCircle, Printer, Target, Trophy, Users } from 'lucide-react';
+import { BarChart3, CalendarDays, Check, Coins, Copy, Gauge, Mail, Megaphone, MessageCircle, Printer, Target, Trophy, Users } from 'lucide-react';
 import type { AdAccount, ViewMode } from '../../types/metaAds';
 import type { BrandConfig } from '../../types/auth';
 import { breakdownDays, cpa, dailyReportMessage, deltaPct, previousDaysLabel, weekBefore } from '../../lib/metrics';
-import { OBJECTIVES, tone } from '../../lib/objectives';
+import { OBJECTIVES } from '../../lib/objectives';
 import { capitalize, formatDayLong, formatDayMonth, formatMoney, formatNumber, parseISODate } from '../../lib/format';
 import { copyText } from '../../lib/clipboard';
 import { Card } from '../ui/Card';
@@ -28,6 +28,7 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
   const [emailOpen, setEmailOpen] = useState(false);
   const isManager = viewMode === 'MANAGER';
+  const headerImage = account.campaigns.flatMap((campaign) => campaign.creatives).find((creative) => creative.previewImage)?.previewImage;
 
   const day = history.find((d) => d.date === selectedDate) ?? history[0];
   // Compara com os dias anteriores ao escolhido, não com a semana mais recente.
@@ -41,7 +42,7 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
   if (!day) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Relatório diário" />
+        <PageHeader title="Relatório diário" eyebrow="Instagram & Facebook" tone="neutral" />
         <ApiAccountNotice account={account} missing="o histórico diário desta conta" />
       </div>
     );
@@ -62,6 +63,9 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
         title="Relatório diário"
+        eyebrow="Instagram & Facebook"
+        tone="neutral"
+        image={headerImage ? { src: headerImage.src, alt: headerImage.description } : undefined}
         description={
           isManager
             ? 'O resultado de cada dia, com a mensagem pronta para mandar ao cliente pelo WhatsApp.'
@@ -78,7 +82,7 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
       <div
         role="group"
         aria-label="Escolher o dia"
-        className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 print:hidden"
+        className="social-filterbar scrollbar-none flex gap-2 overflow-x-auto p-3 print:hidden"
       >
         {history.map((d, index) => {
           const selected = d.date === day.date;
@@ -89,11 +93,7 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
               aria-pressed={selected}
               onClick={() => setSelectedDate(d.date)}
               aria-label={`${capitalize(formatDayLong(d.date))}: ${money(d.spend)}`}
-              className={`flex w-20 shrink-0 flex-col items-center rounded-2xl border px-2 py-2.5 transition ${
-                selected
-                  ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-              }`}
+              className="social-date-chip flex w-20 shrink-0 flex-col items-center rounded-2xl border px-2 py-3 transition"
             >
               <span className={`text-[11px] font-semibold uppercase ${selected ? 'text-white/70' : 'text-slate-400'}`}>
                 {index === 0 ? 'Último' : weekdayFormatter.format(parseISODate(d.date)).replace('.', '')}
@@ -107,35 +107,44 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
         })}
       </div>
 
-      <div className={`grid gap-5 lg:gap-6 ${isManager ? 'lg:grid-cols-[minmax(0,1fr)_24rem]' : ''}`}>
+      <div className={`grid grid-cols-1 gap-5 lg:gap-6 ${isManager ? 'lg:grid-cols-[minmax(0,1fr)_24rem]' : ''}`}>
         <div className="min-w-0 space-y-5">
-          <h2 className="text-base font-bold text-slate-900 sm:text-lg">{capitalize(formatDayLong(day.date))}</h2>
+          <h2 className="flex items-center gap-2.5 text-base font-bold text-slate-900 sm:text-lg">
+            <span className="social-icon grid size-9 shrink-0 place-items-center rounded-xl" data-tone="neutral">
+              <CalendarDays className="size-5" aria-hidden="true" />
+            </span>
+            {capitalize(formatDayLong(day.date))}
+          </h2>
 
           <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
             <KpiCard
               label="Investimento"
               value={money(day.spend)}
               icon={Coins}
+              tone="neutral"
               hint={avgSpend != null ? `média ${previousDaysLabel(week.days)}: ${money(avgSpend)}` : undefined}
             />
             <KpiCard
               label={account.resultLabel}
               value={formatNumber(day.results)}
               icon={Target}
+              tone="neutral"
               delta={{ value: deltaPct(day.results, avgResults), goodWhen: 'up', label: `vs. média ${previousDaysLabel(week.days)}` }}
             />
             <KpiCard
               label="Custo por resultado"
               value={money(dayCpa)}
               icon={Gauge}
-              highlight
+              tone="neutral"
               delta={{ value: deltaPct(dayCpa, week.cpa), goodWhen: 'down', label: `vs. média ${previousDaysLabel(week.days)}` }}
             />
-            <KpiCard label="Alcance" value={formatNumber(day.reach)} icon={Users} hint={`${formatNumber(day.clicks)} cliques`} />
+            <KpiCard label="Alcance" value={formatNumber(day.reach)} icon={Users} tone="neutral" hint={`${formatNumber(day.clicks)} cliques`} />
           </div>
 
           <Card
             title="Por tipo de campanha"
+            tone="neutral"
+            icon={BarChart3}
             description="Quanto cada objetivo gastou e trouxe neste dia"
             flush={breakdown.length > 0}
           >
@@ -148,7 +157,7 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
                 <table className="hidden w-full text-sm md:table">
                   <caption className="sr-only">Resultados do dia por tipo de campanha</caption>
                   <thead>
-                    <tr className="border-b border-slate-200 text-left text-xs font-semibold text-slate-500">
+                    <tr className="border-b border-slate-200 bg-white/35 text-left text-xs font-semibold text-slate-600">
                       <th scope="col" className="px-5 py-2">
                         Tipo
                       </th>
@@ -168,11 +177,11 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
                       const meta = OBJECTIVES[item.objective];
                       const Icon = meta.icon;
                       return (
-                        <tr key={item.objective}>
+                        <tr key={item.objective} className="social-surface" data-tone="neutral">
                           <th scope="row" className="px-5 py-3 text-left font-medium text-slate-800">
                             <span className="flex items-center gap-2.5">
-                              <span className={`grid size-7 place-items-center rounded-lg ${tone(meta.tone).icon}`}>
-                                <Icon className="size-4" aria-hidden="true" />
+                              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600">
+                                <Icon className="size-5" aria-hidden="true" />
                               </span>
                               {meta.label}
                             </span>
@@ -191,9 +200,9 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
                     const meta = OBJECTIVES[item.objective];
                     const Icon = meta.icon;
                     return (
-                      <li key={item.objective} className="flex items-center gap-3 px-4 py-3">
-                        <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${tone(meta.tone).icon}`}>
-                          <Icon className="size-4" aria-hidden="true" />
+                      <li key={item.objective} className="social-surface flex items-center gap-3 px-4 py-3" data-tone="neutral">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600">
+                          <Icon className="size-5" aria-hidden="true" />
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold text-slate-800">{meta.label}</p>
@@ -210,7 +219,7 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
             )}
           </Card>
 
-          <Card title="Destaques do dia">
+          <Card title="Destaques do dia" tone="neutral" icon={Trophy}>
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Highlight icon={Megaphone} label="Campanha que mais trouxe resultados" value={day.topCampaignName} />
               <Highlight icon={Trophy} label="Anúncio destaque" value={day.topCreativeName} />
@@ -220,17 +229,19 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
 
         {isManager && (
           <aside className="min-w-0 print:hidden">
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-36">
-              <header className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
-                <MessageCircle className="size-4 text-[#1f9d55]" aria-hidden="true" />
+            <div className="social-report-message overflow-hidden rounded-3xl lg:sticky lg:top-36">
+              <header className="flex items-center gap-3 border-b border-slate-200 px-4 py-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-slate-700 text-white shadow-sm">
+                  <MessageCircle className="size-5" aria-hidden="true" />
+                </span>
                 <h2 className="text-sm font-bold text-slate-900">Mensagem para o cliente</h2>
               </header>
-              <div className="bg-[#efeae2] p-3 sm:p-4">
-                <div className="relative ml-auto max-w-[95%] rounded-xl rounded-tr-sm bg-[#d9fdd3] px-3 py-2 text-[13px] leading-relaxed text-slate-800 shadow-sm">
+              <div className="bg-slate-50 p-3 sm:p-4">
+                <div className="relative ml-auto max-w-[95%] rounded-2xl rounded-tr-sm border border-slate-200 bg-white px-4 py-3 text-[13px] leading-relaxed text-slate-800 shadow-sm">
                   <WhatsAppText text={message} />
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 p-4 sm:grid-cols-2">
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(message)}`}
                   target="_blank"
@@ -286,8 +297,10 @@ export function DailyReports({ account, viewMode, brand }: DailyReportsProps) {
 
 function Highlight({ icon: Icon, label, value }: { icon: typeof Trophy; label: string; value: string }) {
   return (
-    <div className="flex min-w-0 gap-3 rounded-xl bg-slate-50 p-3">
-      <Icon className="mt-0.5 size-4 shrink-0 text-slate-400" aria-hidden="true" />
+    <div className="social-inset flex min-w-0 gap-3 rounded-2xl p-4">
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600">
+        <Icon className="size-5" aria-hidden="true" />
+      </span>
       <div className="min-w-0">
         <dt className="text-xs font-semibold text-slate-500">{label}</dt>
         <dd className="mt-0.5 text-sm font-medium text-slate-900">{value || '—'}</dd>

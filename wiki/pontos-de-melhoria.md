@@ -1,15 +1,15 @@
 ---
 tipo: roadmap
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [roadmap, producao, melhorias, prioridades]
 ---
 
 # Pontos de melhoria e roadmap para produção
 
-O painel está pronto como **demonstração navegável**: telas revisadas, responsivo em 375/768/1280 px,
-sem erros no console, e o envio do relatório por e-mail já funciona localmente. O que o separa de um
-produto que a agência pode entregar a clientes é, principalmente, **ter um servidor**. Quase tudo na
-lista P0 depende disso.
+O painel reúne **demonstração navegável e importação real por token de sessão**. A integração lê
+insights e criativos disponíveis, mas ainda não é um SaaS pronto: falta autenticação e armazenamento
+seguro no servidor. A revisão de 2026-10-07 não conectou uma conta ao vivo com token do usuário.
+Quase tudo na lista P0 depende do backend.
 
 Ordem sugerida: P0 bloqueia a entrega a clientes reais. P1 é o que faz o produto valer o que promete.
 P2 é polimento.
@@ -23,18 +23,19 @@ P2 é polimento.
 2. **Autenticação de verdade.** O login aceita qualquer senha para os e-mails de demonstração
    (`src/components/screens/LoginScreen.tsx`), e o perfil fica no localStorage. O cliente precisa estar
    preso à própria conta **no servidor**, não só na interface (ver [[perfis-e-modos-de-visao]], [[seguranca]]).
-3. **Token da Meta fora do navegador.** Hoje ele fica em sessionStorage, ou em localStorage se
-   "Lembrar neste navegador" for marcado. O certo é um token de usuário do sistema (System User) do
-   Business Manager, guardado no servidor e renovado lá (ver [[meta-graph-api]], [[modal-conectar-meta]]).
-4. **Dados reais via `/insights`.** A conexão só lê os dados da conta; campanhas, anúncios e a série
-   diária ainda vêm de `src/data/mockData.ts`. Falta mapear `actions` para "resultado" por objetivo,
-   no mesmo critério de [[metricas-e-calculos]], e guardar em cache para respeitar o limite de chamadas
-   da Meta (ver [[o-que-e-simulado]], [[dados-mock]]).
+3. **Token da Meta fora do navegador.** Agora só permanece em memória/sessionStorage e vai no
+   cabeçalho Authorization; o legado persistente é descartado. Falta backend com armazenamento
+   seguro, OAuth quando aplicável e ciclo de renovação/revogação (ver [[meta-graph-api]], [[configuracoes]]).
+4. **Importação real pronta para operação.** `/insights`, campanhas, anúncios e série diária já são
+   importados, em contrato separado do mock, com paginação limitada e ações distintas sem somar aliases.
+   Faltam validação ao vivo autorizada, cache/jobs no servidor, múltiplas contas e processamento de
+   relatórios grandes. Conferir atribuição, período e números com o Gerenciador antes de produção;
+   não converter cliques ou métricas de objetivos diferentes em contatos únicos.
 5. **Marca e preferências no servidor.** Marca, conta conectada e destinatários do relatório ficam no
    localStorage **do navegador de quem configurou**. O cliente, em outro aparelho, não vê a marca da
    agência (ver [[persistencia-localstorage]], [[personalizar-marca]]).
-   Junto com isso: **sair precisa limpar** token, conta conectada e destinatários, e o cliente sem conta
-   válida deve ver um erro, não `accounts[0]` ([[bugs-conhecidos]]).
+   Sair já limpa token e conta/relatório; cliente sem conta válida já recebe estado indisponível, sem
+   fallback para outra conta. Falta política de retenção para destinatários/marca e autorização no servidor.
 
 ## P1 — o produto entregar o que promete
 
@@ -43,17 +44,17 @@ P2 é polimento.
    o histórico de envios.
 7. **Relatório automático.** Hoje o envio é manual. Agendar o envio diário por WhatsApp e e-mail é o que
    tira trabalho do gestor (ver [[relatorio-diario]], [[compartilhamento-whatsapp]]).
-8. **Prévia real do anúncio.** `CreativePreview` é uma ilustração com gradiente. A imagem real vem da API
-   de criativos (`thumbnail_url`, `image_url`), com a mesma permissão `ads_read` (ver [[anuncios]]).
-9. **Testes automatizados.** Não há nenhum. Começar por unidade em `src/lib/metrics.ts`, `format.ts` e
-   `objectives.ts`, onde um erro muda o número que o cliente vê. Depois, um teste de ponta a ponta
-   (Playwright) que abre as 5 telas em 375/768/1280 px e falha se houver rolagem horizontal, porque essa
-   checagem hoje é manual (ver [[interface-e-responsividade]]).
-10. **Moeda, fuso e idioma da conta.** A formatação assume BRL e pt-BR. A Meta devolve `currency` e
-    `timezone` da conta; eles deveriam valer em todas as telas.
-11. **Resultado com unidade por objetivo.** Hoje conversa, cadastro e clique somam no mesmo "resultado",
-    e o CPA da conta e o [[simulador-roi]] herdam a mistura. Separar por objetivo antes de ligar a API
-    real ([[metricas-e-calculos]]).
+8. **Ampliar prévia real do anúncio.** A importação já usa `image_url`/`thumbnail_url` da Meta, com
+   aviso de ausência e recuperação quando a URL muda. Falta reprodução de vídeo, carrossel e formatos
+   completos de prévia. As fotos geradas continuam apenas nas contas de demonstração.
+9. **Ampliar testes automatizados.** `npm test` executa `tests/metaGraphApi.test.ts` com respostas
+   controladas e sem credencial real. Faltam cobertura dos cálculos legados e testes de ponta a ponta
+   do navegador em 375/768/1280 px. Teste controlado não comprova integração ao vivo.
+10. **Moeda, fuso e idioma da conta.** O relatório real já usa moeda e fuso da conta no intervalo e na
+    formatação; a interface continua pt-BR. Revisar fluxos legados e internacionalização antes de ampliá-los.
+11. **Resultado com unidade por objetivo.** O relatório real já separa conversas, cadastros, compras e
+    cliques; falta revisar a mistura ainda presente no modelo de demonstração e no simulador legado.
+    Não aplicar automaticamente a fórmula de resultado do mock a `MetaReportSnapshot`.
 12. **Prévia "Ver painel como" fiel.** Esconder o seletor de contas e os itens de gestor durante a prévia
     ([[perfis-e-modos-de-visao]]).
 
@@ -65,14 +66,14 @@ P2 é polimento.
 14. **Primeira abertura dos modais em dev.** No `npm run dev`, o Vite transforma cada modal na primeira
     abertura, o que parecia "não abrir". O pré-carregamento 2 s após o login resolveu. Em produção os
     chunks são pequenos; vale só não remover esse pré-carregamento.
-15. **Chave legada.** A conexão da Meta ainda usa a chave `clareza_meta_api_config`, do nome antigo do
-    produto. Migrar com leitura da chave antiga (ver [[inconsistencias-de-marca]]).
+15. **Chave legada.** A conexão ainda usa `clareza_meta_api_config` em sessão. Uma renomeação futura
+    deve remover credenciais persistentes antigas sem lê-las nem migrá-las de volta ao localStorage.
 16. **Atalho na tela inicial (PWA).** O cliente abre o painel pelo celular; um manifesto e um ícone
     deixam o painel com cara de aplicativo.
 
 17. **Validar o que vem do storage.** Ler com um esquema (zod ou checagem manual) e descartar o que não
     bate, em vez de confiar no `JSON.parse` ([[persistencia-localstorage]]).
-18. **CSP e cabeçalhos de segurança** no servidor que publicar o `dist/` (Content-Security-Policy
+18. **CSP e cabeçalhos de segurança** (feito na imagem Docker em `deploy/security-headers.conf`, ver [[deploy-vps-portainer]]; falta no `npm run dev`) no servidor que publicar o `dist/` (Content-Security-Policy
     restrita a `graph.facebook.com`, `X-Frame-Options`, `Referrer-Policy`) ([[seguranca]]).
 19. **Alvos de toque de 44 px** no `SegmentedControl` pequeno, no botão `sm` e no fechar do aviso; setas
     no seletor de cor ([[interface-e-responsividade]]).

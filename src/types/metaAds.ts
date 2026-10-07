@@ -1,3 +1,5 @@
+import type { MetaReportSnapshot } from './metaReport';
+
 export type CampaignObjective =
   | 'MESSAGES' // Conversas no WhatsApp / Direct
   | 'LEADS' // Cadastro via formulário instantâneo
@@ -19,6 +21,12 @@ export interface AdCreative {
   callToAction: string;
   /** Classes Tailwind do gradiente usado na prévia simulada do anúncio. */
   previewGradient: string;
+  /** Imagem ilustrativa local; o gradiente permanece como fallback. */
+  previewImage?: {
+    src: string;
+    description: string;
+    position?: string;
+  };
   tagline: string;
   spend: number;
   /** Resultados atribuídos ao criativo (conversas, cadastros...). */
@@ -119,8 +127,10 @@ export interface AdAccount {
   /** Histórico diário, do dia mais recente para o mais antigo. */
   dailyHistory: DailyStat[];
   apiSnapshot?: MetaAccountSnapshot;
+  /** Relatorio real separado dos exemplos e das inferencias da demonstracao. */
+  apiReport?: MetaReportSnapshot;
 }
 
 export type ViewMode = 'CLIENT' | 'MANAGER';
-export type ActiveTab = 'OVERVIEW' | 'CAMPAIGNS' | 'CREATIVES' | 'DAILY_REPORTS' | 'AUDIT';
+export type ActiveTab = 'OVERVIEW' | 'CAMPAIGNS' | 'CREATIVES' | 'DAILY_REPORTS' | 'AUDIT' | 'SETTINGS';
 export type ObjectiveFilter = 'ALL' | CampaignObjective;

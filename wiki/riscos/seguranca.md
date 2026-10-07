@@ -1,6 +1,6 @@
 ---
 tipo: risco
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [riscos, seguranca, lgpd, token, autenticacao, multi-tenant, email]
 ---
 
@@ -10,9 +10,15 @@ O app lida com **dados de anúncios de terceiros**, com **token de acesso à Met
 
 ## Problemas atuais (por gravidade)
 1. **Não existe autenticação.** Só os e-mails dos perfis de exemplo entram, com qualquer senha, e a sessão é um JSON no navegador (`ab_adsdesk_auth_user`). Trocar o `role` nesse JSON transforma o cliente em gestor ([[tela-login]], [[persistencia-localstorage]]).
-2. **O isolamento entre clientes existe só na interface.** O `CLIENT_VIEWER` fica preso à própria conta e à visão cliente, mas os dados de todas as contas estão no mesmo pacote JavaScript, e há um caminho em que o cliente cai na conta errada ([[bugs-conhecidos]], [[perfis-e-modos-de-visao]]).
-3. **Token da Meta no navegador** (`clareza_meta_api_config`): no `sessionStorage` por padrão, no `localStorage` com "Lembrar neste navegador", e enviado na query string direto do front. Qualquer XSS ou extensão consegue lê-lo. Não há CSP no `index.html` ([[meta-graph-api]]).
-4. **Dados da conta conectada persistem** no `localStorage` mesmo sem "Lembrar": em computador compartilhado, o próximo usuário vê nome e gasto da conta.
+2. **O isolamento entre clientes existe só na interface.** O `CLIENT_VIEWER` fica preso à própria conta; se ela estiver ausente, recebe “Conta indisponível”, sem cair em outra conta. Configurações e atualização são restritas ao gestor na visão de gestor. Ainda não há autorização no servidor; os mocks estão no bundle e o snapshot real está no navegador.
+3. **Token da Meta ainda no navegador** (`clareza_meta_api_config`): somente memória/sessionStorage, enviado em `Authorization: Bearer`, sem query string. O legado local é removido sem leitura, mas scripts com acesso à página ainda podem ler a credencial. Esses cuidados não substituem backend, OAuth ou armazenamento seguro. A CSP do nginx é separada da execução em dev ([[deploy-vps-portainer]], [[meta-graph-api]]).
+4. **Snapshot real local.** Conta e relatório sem token persistem no `localStorage` ao fechar a aba. Logout/desconexão removem esse snapshot e a credencial; marca e destinatários ainda permanecem. Em computador compartilhado, fechar a aba não equivale a sair.
+
+## Correções implementadas em 2026-10-07
+
+Credenciais não são persistidas no localStorage nem incorporadas às URLs. A paginação reconstrói chamadas na origem fixa `graph.facebook.com` e ignora URLs `paging.next`; redirecionamentos são recusados. Mensagens de erro remotas brutas não são exibidas. Consultas canceladas ou parciais não substituem o relatório concluído. Sair/desconectar cancela atualizações e limpa token/snapshot. Cliente sem conta não recebe fallback para outra conta.
+
+São proteções da implementação local, não uma auditoria completa de segurança. Não houve conexão ao vivo com token do usuário nesta revisão. A importação real não comprova Pixel, WhatsApp ou origem Turbinar, e não produz nota de saúde presumida. Ver [[o-que-e-simulado]].
 
 ## E-mail (SMTP)
 O que já está certo, e não pode regredir ([[envio-de-email-smtp]]):

@@ -1,6 +1,6 @@
 ---
 tipo: tela
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [tela, campanhas, publicos, filtros, custo-por-resultado]
 ---
 
@@ -11,6 +11,8 @@ tags: [tela, campanhas, publicos, filtros, custo-por-resultado]
 > Mudou em 2026-09-25: saíram o botão pausar/ativar (que era falso), os cards fixos "o que está rodando agora" e o selo de custo com faixas fixas de R$ 6 e R$ 10. Agora o selo compara com a média da própria conta. O bug do estado dessincronizado acabou: a lista lê direto da conta, e a tela é montada de novo ao trocar de conta.
 
 ## O que aparece
+O cabeçalho usa foto local ilustrativa sobre superfície neutra, com "Instagram & Facebook". Os filtros ficam em uma faixa própria. Todas as campanhas compartilham fundo branco e blocos internos claros; nomes, ícones, espaçamento e contornos identificam os objetivos. A cor de ação fica no filtro selecionado e as cores de estado permanecem em selos com texto. Ver [[cores-e-hierarquia-visual]].
+
 1. **Chips de tipo:** "Todas" e um chip por objetivo presente na conta, com contagem ("Conversas no WhatsApp", "Cadastros", "Reconhecimento local", "Cliques no link / post turbinado"). O filtro fica guardado no `App`: chega pronto quando se toca num tipo na [[visao-geral]], continua valendo ao sair e voltar e só zera ao trocar de conta.
 2. **Busca** "Buscar por nome, público ou destino": ignora acentos e procura no nome, no tipo, no destino e nos nomes dos públicos.
 3. **Situação:** "Ativas e pausadas", "Só ativas" ou "Só pausadas".
@@ -21,14 +23,17 @@ tags: [tela, campanhas, publicos, filtros, custo-por-resultado]
    - selo âmbar **"Post turbinado"** quando `isProfessionalStructure` é falso ([[profissional-vs-turbinar]]);
    - Investido, resultados (com o nome da métrica da campanha), Custo por resultado com selo de saúde e Orçamento diário (ou "Pausada");
    - uma frase explicando o selo, ex.: "12% mais barato que a média da conta".
+   - foto ilustrativa de capa de 96 × 96 px a partir de `sm`, quando a campanha possui anúncio com imagem.
 7. **"Ver públicos, destino e anúncios"** abre:
    - "Para onde o contato vai" e "O que acontece quando a pessoa clica", em linguagem leiga;
    - os públicos (região, idade e gênero, interesses, investido, resultados, orçamento por dia);
-   - os anúncios, com os selos "Em queda" e "Pausado".
+   - os anúncios, com miniatura ilustrativa de 80 × 80 px (96 × 96 px a partir de `sm`, via `CreativePreview` com `compact`), reutilizando a foto de [[anuncios]], e os selos "Em queda" e "Pausado". Sem imagem ou em erro, a miniatura usa o gradiente de reserva.
 
    Campanha sem público mostra o aviso "Sem público definido: a Meta entrega para quem quiser...".
 
 Se nenhum filtro encontrar campanhas, aparece "Nenhuma campanha com esses filtros" e o botão "Limpar filtros".
+
+No detalhe, destino, ação, métricas técnicas, públicos e anúncios usam camadas neutras, títulos e divisores. Busca, filtros, ordenação, regras de visibilidade e dados de demonstração continuam com o mesmo comportamento; a alteração de cores não integra insights da Meta.
 
 ## Selo de saúde do custo (`cpaHealth`)
 Divide o custo da campanha pela média da conta:

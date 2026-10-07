@@ -1,6 +1,6 @@
 ---
 tipo: tela
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [tela, cabecalho, navegacao, rotas, celular, layout]
 ---
 
@@ -18,6 +18,7 @@ tags: [tela, cabecalho, navegacao, rotas, celular, layout]
 | Anúncios | `#anuncios` | Anúncios | [[anuncios]] |
 | Relatório diário | `#diario` | Diário | [[relatorio-diario]] |
 | Auditoria | `#auditoria` | Auditoria | [[auditoria-transparencia]] |
+| Configurações (gestor na visão gestor) | `#configuracoes` | Config. | [[configuracoes]] |
 
 - Ao trocar de aba, `selectTab` (`src/App.tsx`) faz `pushState` do hash e rola a página para o topo. Um ouvinte de `hashchange` troca a aba quando o usuário usa voltar ou avançar. Um hash vazio ou desconhecido abre a Visão geral, então voltar até a entrada sem `#` também funciona. Um link direto como `…/#diario` já abre na aba certa.
 - As abas são links `<a href="#…">` de verdade e a aba atual tem `aria-current="page"`. O título da guia do navegador acompanha a aba, por exemplo "Campanhas · Raro Pilates · AB AdsDesk".
@@ -25,9 +26,9 @@ tags: [tela, cabecalho, navegacao, rotas, celular, layout]
 
 ## Zonas do cabeçalho (`AppHeader`)
 1. **Logo** (`BrandLogo`, ver [[personalizar-marca]]): leva à visão geral. Abaixo de 640 px aparece só o símbolo.
-2. **Conta** (`AccountSwitcher`): avatar, nome e tipo de negócio. O gestor abre a lista de contas, que mostra a origem de cada uma ("Meta API" ou "Demonstração") e termina em "Conectar conta da Meta" ([[modal-conectar-meta]]). **Para o cliente é só um rótulo fixo, sem lista.** No celular a lista ocupa a largura do cabeçalho, com 12 px de margem de cada lado (`inset-x-3`, ancorada no cabeçalho, que é `sticky`); a partir de 640 px ela se ancora no seletor, com 20 rem de largura.
-3. **Selo de origem**, a partir de 1024 px: "Meta API conectada" ou "Dados de demonstração".
-4. **Atualizar**, só em conta real: consulta a Meta de novo. Se o token da sessão já sumiu, o gestor recebe um aviso e o modal de conexão abre; o cliente só vê "Não foi possível atualizar agora. A agência atualiza os dados desta conta.", porque conectar a Meta é tarefa do gestor. A partir de 1280 px mostra também "Atualizado às…".
+2. **Conta** (`AccountSwitcher`): avatar, nome e tipo de negócio. O gestor abre a lista de contas, que mostra a origem de cada uma ("Meta API" ou "Demonstração") e termina em "Conectar conta da Meta", agora levando a [[configuracoes]]; a migração está em [[modal-conectar-meta]]. **Para o cliente é só um rótulo fixo, sem lista.** No celular a lista ocupa a largura do cabeçalho, com 12 px de margem de cada lado (`inset-x-3`, ancorada no cabeçalho, que é `sticky`); a partir de 640 px ela se ancora no seletor, com 20 rem de largura.
+3. **Selo de origem**, a partir de 1024 px: "Dados da Meta" ou "Dados de demonstração".
+4. **Atualizar**, só em conta real e para gestor na visão gestor: importa novamente o último período concluído. Sem token de sessão, orienta e abre Configurações. Falha preserva o snapshot anterior. A partir de 1280 px mostra também "Atualizado às…". Cliente e prévia de cliente não recebem esse controle.
 5. **Simulador** ([[simulador-roi]]): só o ícone a partir de 640 px, ícone e texto a partir de 1024 px. No celular, fica só no menu.
 6. **Menu do usuário** (`UserMenu`).
 7. **Abas** numa segunda linha, a partir de 768 px.
@@ -39,15 +40,16 @@ Quando o gestor vê o painel como cliente, uma faixa escura no topo avisa "Você
 |---|---|---|
 | Nome, e-mail e papel | sim | sim |
 | "Ver painel como" Gestor / Cliente | sim | — |
-| Personalizar marca · Conectar conta da Meta | sim | — |
+| Personalizar marca | sim, inclusive na prévia de cliente | — |
+| Configurações e conexão Meta | só na visão gestor | — |
 | Simulador de retorno · Sair | sim | sim |
 
 Antes de executar a ação, o menu devolve o foco ao botão do avatar. O item clicado desaparece junto com o menu. Sem essa volta, o foco cairia no `<body>` e o modal aberto em seguida não teria para onde devolvê-lo quando fechasse. A lista de contas faz o mesmo com o seletor, tanto ao escolher uma conta quanto em "Conectar conta da Meta".
 
 ## Celular × desktop
-- **Abaixo de 768 px:** o `BottomNav` é uma barra fixa na base da tela, com 5 colunas (ícone e rótulo curto), e respeita a área segura do iPhone. As abas do cabeçalho somem.
+- **Abaixo de 768 px:** o `BottomNav` é uma barra fixa na base da tela, com 6 colunas para o gestor na visão gestor e 5 para cliente/prévia. Respeita a área segura do iPhone. As abas do cabeçalho somem.
 - **A partir de 768 px:** as abas voltam ao cabeçalho e a barra inferior some.
-- **Rodapé (`AppFooter`):** mostra o nome do painel, "Desenvolvido por" (se estiver ligado) e a fonte dos dados ("Meta Graph API v23.0" ou "dados de demonstração"). O cliente também vê "Falar com {agência}", que abre o WhatsApp de atendimento. No celular o rodapé ganha `pb-24` para não ficar escondido atrás da barra.
+- **Rodapé (`AppFooter`):** mostra o nome do painel, "Desenvolvido por" (se estiver ligado) e a fonte dos dados (versão de `META_GRAPH_API_VERSION`, hoje v26.0, ou "dados de demonstração"). O cliente também vê "Falar com {agência}", que abre o WhatsApp de atendimento. No celular o rodapé ganha `pb-24` para não ficar escondido atrás da barra.
 - Menus fecham com Esc ou com clique fora (`src/hooks/useDismiss.ts`). O hook informa o motivo (`'escape'` ou `'outside'`): no Esc, o foco volta ao botão que abriu o menu; no clique fora, fica onde o usuário clicou. Mais regras em [[interface-e-responsividade]].
 - **"Pular para o conteúdo"** (primeiro Tab da página) move o foco para o `<main id="conteudo">` sem mexer no endereço. Se usasse o `href="#conteudo"`, o hash da tela seria trocado e o app voltaria para a Visão geral.
 
@@ -57,3 +59,7 @@ Antes de executar a ação, o menu devolve o foco ao botão do avatar. O item cl
 - **Um link com `href="#…"` que não é aba** troca a tela para a Visão geral, porque o `hashchange` lê qualquer hash. Use `preventDefault` e mova o foco, como no link de pular.
 - **As abas cancelam sempre o clique** (`preventDefault`), então Ctrl+clique não abre a aba em outra guia ([[bugs-conhecidos]]).
 - O ícone da Raro Pilates agora vem do campo `logoKey` da conta, e não mais de `includes('Raro')`. Mesmo assim é um caso especial do cliente demo ([[nicho-pilates-e-generalizacao]]).
+
+## Identidade e hierarquia
+
+O monograma personalizado da AB usa `public/brand/ab-adsdesk-mark.svg`; ele também é o favicon. O cabeçalho permanece claro, com acentos de marca contidos, e a aba ativa usa contraste e indicador, não um fundo multicolorido. O cabeçalho compacto dentro da Visão geral e seu calendário são documentados em [[visao-geral]]. A política de cores fica em [[cores-e-hierarquia-visual]].

@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from 'react';
-import { ArrowRight, ImageOff, Info, Trophy } from 'lucide-react';
+import { ArrowRight, Clapperboard, Image as ImageIcon, ImageOff, Info, Layers3, Smartphone, Trophy, type LucideIcon } from 'lucide-react';
 import type { AdAccount, CreativeFormat, ViewMode } from '../../types/metaAds';
 import {
   MIN_RESULTS_FOR_CHAMPION,
@@ -13,6 +13,7 @@ import {
 } from '../../lib/metrics';
 import { CREATIVE_FORMAT, OBJECTIVES } from '../../lib/objectives';
 import { formatMoney, formatNumber, formatPercent } from '../../lib/format';
+import { AccountAvatar } from '../ui/AccountAvatar';
 import { Badge } from '../ui/Badge';
 import { CreativePreview } from '../ui/CreativePreview';
 import { Modal } from '../ui/Modal';
@@ -33,6 +34,13 @@ const SORT_LABEL: Record<SortKey, string> = {
   CPA: 'Menor custo por resultado',
   RESULTS: 'Mais resultados',
   SPEND: 'Maior investimento',
+};
+
+const FORMAT_ICON: Record<CreativeFormat, LucideIcon> = {
+  IMAGE: ImageIcon,
+  VIDEO: Clapperboard,
+  CAROUSEL: Layers3,
+  STORY_REEL: Smartphone,
 };
 
 function sortRows(rows: CreativeRow[], key: SortKey): CreativeRow[] {
@@ -69,12 +77,13 @@ export function Creatives({ account, viewMode }: CreativesProps) {
   );
 
   const selected = rows.find((r) => r.id === selectedId) ?? null;
+  const headerImage = rows.find((row) => row.previewImage)?.previewImage;
   const money = (v: number | null) => formatMoney(v, account.currency);
 
   if (rows.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Anúncios" />
+        <PageHeader title="Anúncios" eyebrow="Instagram & Facebook" tone="neutral" />
         <ApiAccountNotice account={account} missing="os anúncios desta conta" />
       </div>
     );
@@ -86,18 +95,25 @@ export function Creatives({ account, viewMode }: CreativesProps) {
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
         title="Anúncios"
+        eyebrow="Instagram & Facebook"
+        tone="neutral"
+        image={headerImage ? { src: headerImage.src, alt: headerImage.description } : undefined}
         description="Qual arte e qual texto trazem contato mais barato. Anúncios com desempenho em queda precisam de uma arte nova."
       />
 
       {champion && (
         <section
           aria-labelledby="campeao"
-          className="overflow-hidden rounded-2xl border border-amber-200 bg-linear-to-br from-amber-50 to-white shadow-sm"
+          data-tone="neutral"
+          className="social-champion overflow-hidden rounded-2xl border border-slate-200 shadow-sm"
         >
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-            <CreativePreview creative={champion} className="h-48 md:h-full" />
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)]">
+            <div className="flex min-w-0 flex-col border-b border-white/70 md:border-r md:border-b-0">
+              <AdAccountHeader account={account} format={champion.format} />
+              <CreativePreview creative={champion} className="!h-72 min-h-72 md:!h-full md:flex-1" />
+            </div>
             <div className="p-4 sm:p-6">
-              <p className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-amber-700 uppercase">
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">
                 <Trophy className="size-4" aria-hidden="true" />
                 {championIsReal ? 'Anúncio campeão' : 'Anúncio com mais resultados'}
               </p>
@@ -106,7 +122,7 @@ export function Creatives({ account, viewMode }: CreativesProps) {
               </h2>
               <p className="mt-0.5 text-sm text-slate-500">{champion.campaignName}</p>
 
-              <dl className="mt-4 grid grid-cols-3 gap-3">
+              <dl className="mt-4 grid grid-cols-3 gap-2 md:grid-cols-2 xl:grid-cols-3 sm:gap-3">
                 <HeroStat label="Resultados" value={formatNumber(champion.leads)} />
                 <HeroStat label="Custo cada" value={money(champion.cpa)} />
                 <HeroStat label="Investido" value={money(champion.spend)} />
@@ -132,14 +148,15 @@ export function Creatives({ account, viewMode }: CreativesProps) {
         </section>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="social-filterbar flex min-w-0 flex-col gap-4 rounded-2xl p-4 xl:flex-row xl:items-center xl:justify-between">
         <div
           role="group"
           aria-label="Filtrar por formato"
-          className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0"
+          className="scrollbar-none flex min-w-0 gap-2 overflow-x-auto pb-1"
         >
           {(['ALL', ...formatCounts.keys()] as FormatFilter[]).map((value) => {
             const pressed = value === format;
+            const FormatIcon = value === 'ALL' ? Layers3 : FORMAT_ICON[value];
             return (
               <button
                 key={value}
@@ -148,10 +165,11 @@ export function Creatives({ account, viewMode }: CreativesProps) {
                 onClick={() => setFormat(value)}
                 className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-semibold whitespace-nowrap transition ${
                   pressed
-                    ? 'border-slate-900 bg-slate-900 text-white'
+                    ? 'border-slate-800 bg-slate-800 text-white shadow-sm'
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'
                 }`}
               >
+                <FormatIcon className="size-4" aria-hidden="true" />
                 {value === 'ALL' ? 'Todos' : CREATIVE_FORMAT[value]}
                 <span className={`tabular-nums ${pressed ? 'text-white/70' : 'text-slate-400'}`}>
                   {value === 'ALL' ? rows.length : formatCounts.get(value)}
@@ -186,13 +204,15 @@ export function Creatives({ account, viewMode }: CreativesProps) {
           {visible.map((row) => {
             const badges = creativeBadges(row, rows);
             return (
-              <li key={row.id}>
+              <li key={row.id} className="min-w-0">
                 <article
-                  className={`flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${
+                  data-tone="neutral"
+                  className={`social-creative-card social-surface flex h-full flex-col overflow-hidden rounded-2xl border shadow-sm ${
                     row.status === 'FATIGUE' ? 'border-amber-200' : 'border-slate-200'
                   }`}
                 >
-                  <CreativePreview creative={row} className={row.status === 'ACTIVE' && row.campaignActive ? '' : 'opacity-70'} />
+                  <AdAccountHeader account={account} format={row.format} />
+                  <CreativePreview creative={row} className={`!h-72 ${row.status === 'ACTIVE' && row.campaignActive ? '' : 'opacity-70'}`} />
                   <div className="flex flex-1 flex-col p-4">
                     {badges.length > 0 && (
                       <div className="mb-2 flex flex-wrap gap-1.5">
@@ -242,6 +262,7 @@ export function Creatives({ account, viewMode }: CreativesProps) {
         <CreativeDetail
           row={selected}
           rows={rows}
+          account={account}
           currency={account.currency}
           averageCpa={averageCpa}
           isManager={isManager}
@@ -255,22 +276,26 @@ export function Creatives({ account, viewMode }: CreativesProps) {
 interface CreativeDetailProps {
   row: CreativeRow;
   rows: CreativeRow[];
+  account: AdAccount;
   currency: string;
   averageCpa: number | null;
   isManager: boolean;
   onClose: () => void;
 }
 
-function CreativeDetail({ row, rows, currency, averageCpa, isManager, onClose }: CreativeDetailProps) {
+function CreativeDetail({ row, rows, account, currency, averageCpa, isManager, onClose }: CreativeDetailProps) {
   const money = (v: number | null) => formatMoney(v, currency);
   const health = cpaHealth(row.cpa, averageCpa);
   const badges = creativeBadges(row, rows);
 
   return (
     <Modal open onClose={onClose} title={row.name} description={row.campaignName} size="lg">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-[13rem_minmax(0,1fr)]">
-        <div className="mx-auto w-full max-w-[13rem]">
-          <CreativePreview creative={row} fit="ratio" aspectRatio={row.aspectRatio} className="rounded-xl" />
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)]">
+        <div className="mx-auto w-full max-w-sm">
+          <div data-tone="neutral" className="social-surface overflow-hidden rounded-xl border border-slate-200">
+            <AdAccountHeader account={account} format={row.format} />
+            <CreativePreview creative={row} fit="ratio" aspectRatio={row.aspectRatio} />
+          </div>
           <p className="mt-1.5 text-center text-[11px] text-slate-400">
             Prévia ilustrativa · {CREATIVE_FORMAT[row.format]} {row.aspectRatio}
           </p>
@@ -287,7 +312,7 @@ function CreativeDetail({ row, rows, currency, averageCpa, isManager, onClose }:
             </div>
           )}
 
-          <div className="rounded-xl bg-slate-50 p-3">
+          <div data-tone="neutral" className="social-surface rounded-xl p-4">
             <p className="text-xs font-semibold text-slate-500">Título</p>
             <p className="mt-0.5 text-sm font-bold text-slate-900">{row.headline}</p>
             <p className="mt-3 text-xs font-semibold text-slate-500">Texto do anúncio</p>
@@ -296,7 +321,7 @@ function CreativeDetail({ row, rows, currency, averageCpa, isManager, onClose }:
             <p className="mt-0.5 text-sm text-slate-700">{row.callToAction}</p>
           </div>
 
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <dl className="grid grid-cols-2 gap-3">
             <SmallStat label="Investido" value={money(row.spend)} />
             <SmallStat label="Resultados" value={resultsWithUnit(row.leads, row.objective)} />
             <SmallStat label="Custo cada" value={money(row.cpa)} />
@@ -314,7 +339,7 @@ function CreativeDetail({ row, rows, currency, averageCpa, isManager, onClose }:
           </p>
 
           {row.notes && (
-            <div className="bg-brand-50 ring-brand-100 rounded-xl px-3 py-2.5 ring-1">
+            <div data-tone="neutral" className="social-surface rounded-xl px-4 py-3">
               <p className="text-xs font-semibold text-slate-500">Observação do gestor</p>
               <p className="mt-0.5 text-sm text-slate-700">{row.notes}</p>
             </div>
@@ -325,19 +350,38 @@ function CreativeDetail({ row, rows, currency, averageCpa, isManager, onClose }:
   );
 }
 
+function AdAccountHeader({ account, format }: { account: AdAccount; format: CreativeFormat }) {
+  const Icon = FORMAT_ICON[format];
+
+  return (
+    <div className="social-ad-account flex min-w-0 items-center gap-2.5 px-4 py-3">
+      <span className="shrink-0 overflow-hidden rounded-full ring-2 ring-white">
+        <AccountAvatar account={account} size={36} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-bold text-slate-900" title={account.businessName}>{account.businessName}</p>
+        <p className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-600">
+          <Icon className="size-3 shrink-0" aria-hidden="true" />
+          {CREATIVE_FORMAT[format]}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0">
-      <dt className="truncate text-xs font-medium text-slate-500">{label}</dt>
-      <dd className="mt-0.5 truncate text-lg font-bold text-slate-900 tabular-nums sm:text-xl">{value}</dd>
+    <div data-tone="neutral" className="social-surface min-w-0 rounded-xl px-2.5 py-3 sm:px-3">
+      <dt className="truncate text-xs font-medium text-slate-600">{label}</dt>
+      <dd className="mt-1 text-sm font-bold text-slate-900 tabular-nums sm:text-lg">{value}</dd>
     </div>
   );
 }
 
 function SmallStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-lg bg-slate-50 px-2.5 py-2">
-      <dt className="truncate text-[11px] font-medium text-slate-500">{label}</dt>
+    <div data-tone="neutral" className="social-surface min-w-0 rounded-lg px-2.5 py-2">
+      <dt className="truncate text-[11px] font-medium text-slate-600">{label}</dt>
       <dd className="mt-0.5 truncate text-sm font-bold text-slate-900 tabular-nums">{value}</dd>
     </div>
   );

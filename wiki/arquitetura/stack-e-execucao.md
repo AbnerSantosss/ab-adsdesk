@@ -1,6 +1,6 @@
 ---
 tipo: arquitetura
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [arquitetura, stack, vite, react, tailwind, npm]
 ---
 
@@ -24,9 +24,11 @@ Mudou em 2026-09-25: saíram `@google/genai`, `express`, `dotenv`, `motion`, `ts
 ## Como rodar
 
 ```bash
-npm install          # instala pelo package-lock.json
+npm ci               # instala exatamente o package-lock.json
 npm run dev          # abre em http://localhost:3000 e escuta em 0.0.0.0 (rede local)
 npm run lint         # tsc --noEmit: só checa os tipos, não gera arquivos
+npm test             # contratos Meta e intervalos, sem token real
+npm run wiki:check    # links internos, frontmatter e alcance do mapa da wiki
 npm run build        # gera dist/
 npm run preview      # serve o dist/; a API de e-mail também funciona aqui
 npm run clean        # apaga dist/
@@ -34,14 +36,14 @@ npm run email:check  # testa o login no SMTP com o .env.local, sem enviar e-mail
 ```
 
 - O e-mail é opcional. Para usá-lo, copie `.env.example` para `.env.local` e preencha as `SMTP_*`. Sem isso o painel funciona normalmente, e o modal de e-mail avisa que o envio não está configurado.
-- O `email:check` roda `server/check-email.ts` direto no Node, com `--env-file-if-exists`. Por isso exige um Node que remova tipos de TypeScript sozinho (22.18+ ou 23.6+; a máquina tem o 24).
+- O `email:check` e os testes TypeScript rodam diretamente no Node. Use a versão atual suportada pelo Docker/CI (Node 22 com suporte a type stripping) ou Node 24. `email:check` acessa as variáveis locais do SMTP; não é necessário para validar a interface ou a conexão Meta.
 - `DISABLE_HMR=true` desliga o HMR e o watcher. É herança do AI Studio, que edita os arquivos por fora.
 
 ## Como o Vite está montado
 
 O `vite.config.ts` chama `loadEnv(mode, cwd, '')` com prefixo vazio, para que o plugin de e-mail leia as `SMTP_*` no Node. Isso não vaza nada para o navegador, porque o código de `src/` não lê `import.meta.env`.
 
-Os plugins são `react()`, `tailwindcss()` e `emailApi(env)`. O último, em `server/vitePlugin.ts`, registra `/api/email/status` e `/api/email/report` tanto no `dev` quanto no `preview`. **Consequência:** se o `dist/` for publicado em hospedagem estática, a API de e-mail deixa de existir.
+Os plugins são `react()`, `tailwindcss()` e `emailApi(env)`. O último, em `server/vitePlugin.ts`, registra `/api/email/status` e `/api/email/report` tanto no `dev` quanto no `preview`. **Consequência:** se o `dist/` for publicado em hospedagem estática, a API de e-mail deixa de existir. É o caso da imagem Docker (nginx), de propósito: ver [[deploy-vps-portainer]].
 
 ## Árvore de pastas
 
@@ -50,25 +52,33 @@ Os plugins são `react()`, `tailwindcss()` e `emailApi(env)`. O último, em `ser
 ├── vite.config.ts · tsconfig.json · package.json · package-lock.json
 ├── .env.example        # modelo das variáveis SMTP
 ├── metadata.json · README.md
-├── public/raro-pilates-logo.svg
+├── public/             # brand/ab-adsdesk-mark.svg, images/ads, images/brand
+├── scripts/check-wiki.mjs
+├── tests/              # contratos de importação Meta e datas
 ├── server/             # só Node: email.ts, vitePlugin.ts, check-email.ts
 └── src/
     ├── main.tsx · App.tsx · index.css
     ├── components/
     │   ├── layout/     # AppHeader, BottomNav, AccountSwitcher, UserMenu, AppFooter
-    │   ├── screens/    # LoginScreen, Overview, Campaigns, Creatives, DailyReports, Audit, ApiAccountNotice
+    │   ├── screens/    # LoginScreen, Overview, Campaigns, Creatives, DailyReports, Audit, Settings, MetaReports
     │   ├── modals/     # BrandSettings, MetaConnect, RoiCalculator, SendReportEmail
-    │   └── ui/         # Modal, Card, KpiCard, Badge, Toast, ErrorBoundary, PageSkeleton, SegmentedControl…
+    │   └── ui/         # componentes base, DateRangeFilter, MetaConnectionPanel, CreativePreview…
     ├── data/mockData.ts
     ├── hooks/useDismiss.ts
-    ├── lib/            # metrics, format, objectives, navigation, storage, clipboard
+    ├── lib/            # metrics, dateRange, socialTheme, format, objectives, navigation, storage, clipboard
     ├── services/       # metaGraphApi, emailApi
-    └── types/          # metaAds, auth
+    └── types/          # metaAds, metaReport, auth
 ```
 
 ## Tamanho do build
 
-Cada tela e cada modal vira um chunk próprio (`lazy()`). A Visão geral pesa ~386 kB (≈111 kB gzip), quase tudo recharts; o `index` ~269 kB, o CSS ~60 kB e as demais telas 9 a 15 kB. Trocar o gráfico por SVG próprio é o maior ganho disponível ([[pontos-de-melhoria]]).
+Telas e modais são carregados sob demanda (`lazy()`), incluindo Configurações e o relatório real. Recharts é parte importante do chunk da Visão geral. Os tamanhos mudam com cada build; usar a saída atual de `npm run build`, não os números do protótipo de setembro, para comparar regressões ([[pontos-de-melhoria]]).
+
+## Verificação da wiki
+
+`npm run wiki:check` executa `scripts/check-wiki.mjs`, sem dependências externas nem acesso à rede. Confere frontmatter obrigatório, slugs duplicados, destinos de wikilinks e âncoras de títulos, links Markdown locais, páginas sem entrada e alcance a partir de [[index]]. O mapa para navegação no GitHub fica em [[README]]; a fonte editorial continua usando `[[slug]]`. Mudanças devem atualizar a página correspondente e [[log]].
+
+Conexão, credenciais e dados reais: [[configuracoes]], [[meta-graph-api]] e [[modelo-de-dados]]. Critérios de UI: [[interface-e-responsividade]] e [[cores-e-hierarquia-visual]].
 
 ## Armadilhas
 

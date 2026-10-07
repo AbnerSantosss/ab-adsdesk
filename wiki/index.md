@@ -1,6 +1,6 @@
 ---
 tipo: indice
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [indice, mapa]
 ---
 
@@ -11,9 +11,11 @@ cliente, por exemplo um estúdio de Pilates, vê em linguagem simples quanto inv
 chegaram e quanto custou cada um. Stack: React 19, Vite 8, Tailwind v4 e TypeScript, com um pequeno
 servidor de e-mail no Vite.
 
-**Estado em 2026-09-25:** demonstração navegável e responsiva. Os dados de campanhas ainda são de
-exemplo, e o envio por e-mail funciona localmente. Para entender o que falta para produção, comece por
-[[pontos-de-melhoria]]. Para o que mudou e por quê, leia [[refatoracao-ux-2026-09-25]].
+**Estado em 2026-10-07:** contas de demonstração e importação real da Meta por token de sessão,
+com Configurações, insights e criativos disponíveis. Ainda não é um SaaS pronto: faltam backend Meta,
+OAuth e autenticação de produção. Não houve conexão ao vivo com credencial do usuário nesta revisão.
+O envio por e-mail existente é local e separado do novo relatório real. Veja [[configuracoes]],
+[[o-que-e-simulado]] e [[pontos-de-melhoria]].
 
 ## Por onde começar
 
@@ -21,6 +23,7 @@ exemplo, e o envio por e-mail funciona localmente. Para entender o que falta par
 | --- | --- |
 | Entender o produto em 5 minutos | [[visao-do-produto]] → [[proposta-de-valor]] |
 | Rodar o projeto | [[stack-e-execucao]] |
+| Publicar na VPS (continuar o deploy) | [[deploy-vps-portainer]] |
 | Mexer numa tela | a página da tela + [[interface-e-responsividade]] |
 | Saber o que é real e o que é simulado | [[o-que-e-simulado]] |
 | Configurar o e-mail | [[envio-de-email-smtp]] |
@@ -46,7 +49,8 @@ exemplo, e o envio por e-mail funciona localmente. Para entender o que falta par
 - [[relatorio-diario]]: resumo do dia, envio por WhatsApp ou e-mail e impressão.
 - [[auditoria-transparencia]]: saúde da conta e campanhas profissionais × turbinadas.
 - [[personalizar-marca]]: modal white-label (nome, logotipo, cor).
-- [[modal-conectar-meta]]: conexão com uma conta real pela Graph API.
+- [[configuracoes]]: passo a passo de conexão Meta, importação real por token e ajuda para o gestor.
+- [[modal-conectar-meta]]: histórico do modal, agora substituído pela aba Configurações.
 - [[simulador-roi]]: projeção de matrículas e receita a partir do investimento.
 
 ## Arquitetura
@@ -55,6 +59,8 @@ exemplo, e o envio por e-mail funciona localmente. Para entender o que falta par
 - [[perfis-e-modos-de-visao]]: gestor, cliente e "ver painel como".
 - [[persistencia-localstorage]]: o que fica salvo no navegador e com qual chave.
 - [[interface-e-responsividade]]: componentes base, tema da marca, celular primeiro e armadilhas de layout.
+- [[cores-e-hierarquia-visual]]: pesquisa de UX sobre cores, contraste, agrupamento e paleta neutra aplicada ao painel.
+- [[deploy-vps-portainer]]: Docker/nginx, GHCR, Portainer e Cloudflare. Publicação no GitHub e etapas separadas para a VPS.
 
 ## Dados
 - [[modelo-de-dados]]: tipos de conta, campanha, anúncio e dia.
@@ -76,4 +82,8 @@ exemplo, e o envio por e-mail funciona localmente. Para entender o que falta par
 ## Planejamento e histórico
 - [[pontos-de-melhoria]]: roadmap para produção por prioridade.
 - [[refatoracao-ux-2026-09-25]]: decisões da refatoração de UX e responsividade.
-- Registro de mudanças da wiki: `log.md`.
+- [[log]]: registro de mudanças e validações da wiki.
+
+## Navegação no GitHub
+
+[[README]] reúne links Markdown para todas as páginas desta wiki. No Obsidian, use as conexões deste índice e os assuntos relacionados em cada página.

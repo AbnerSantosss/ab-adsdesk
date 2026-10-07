@@ -1,12 +1,12 @@
 ---
 tipo: referencia
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [produto, glossario, metricas, linguagem, meta-ads]
 ---
 
 # Glossário sem jargão
 
-Esta página traduz os termos técnicos da Meta para a linguagem que o app usa com o cliente leigo. Os rótulos entre aspas são os que aparecem hoje na interface. Serve de guia de tom para textos novos. Os cálculos de cada métrica estão em [[metricas-e-calculos]].
+Esta página traduz os termos técnicos da Meta para a linguagem do painel. A tabela descreve principalmente a demonstração. No relatório real, conversas, cadastros, compras, cliques e alcance são separados; não tratar cliques como contatos únicos nem sinais não importados como verificados. Serve de guia para textos novos. Cálculos e diferenças entre os contratos estão em [[metricas-e-calculos]] e [[meta-graph-api]].
 
 | Termo técnico | O que significa | Como o app fala |
 |---|---|---|
@@ -35,8 +35,10 @@ Esta página traduz os termos técnicos da Meta para a linguagem que o app usa c
 | **ROAS** | Faturamento ÷ investimento | "Cada R$ 1 investido volta R$ X" ([[simulador-roi]]) |
 
 ## Regras de tom
-- Número sempre acompanhado de **julgamento**. O leigo não sabe se R$ 6,46 é caro. Hoje o julgamento é **relativo à média da própria conta** ("Abaixo da média", "Na média", "Acima da média", "Muito acima"), e cada KPI diz se melhorou ou piorou em relação ao dia anterior ou à média de 7 dias. Não usar faixa fixa de reais: ela só vale para um nicho.
+- Número acompanhado de **contexto verificável**. No mock, os selos são relativos à média da própria conta e as variações exigem histórico anterior disponível. Sem base comparável, não inventar julgamento, resultado zero ou nota de saúde. Não usar faixa fixa de reais para todos os nichos.
 - Evitar siglas na visão do cliente. Onde a sigla ficar, colocar a tradução ao lado, como já fazem as métricas técnicas.
-- Métricas técnicas (impressões, cliques, CTR, CPC, CPM, frequência) ficam só na visão de gestor ([[perfis-e-modos-de-visao]]).
+- Nas telas de demonstração, as métricas técnicas ficam na visão de gestor. O relatório real tem contrato/interface próprios e mostra investimento, impressões, cliques e alcance com seus nomes, sem inventar conversões. Permissões administrativas estão em [[perfis-e-modos-de-visao]].
 - **Não chamar tráfego de "turbinado".** O rótulo curto do objetivo de tráfego é "Cliques" justamente para não confundir com o botão Turbinar, que é origem da campanha, não objetivo. O rótulo longo ainda mistura as duas coisas ("Cliques no link / post turbinado").
 - Um termo por conceito: o app diz "Custo por resultado" em todo lugar, menos na pré-visualização da marca, que ainda mostra "Custo por contato".
+
+Cor reforça o rótulo, sem substituí-lo. Critérios de agrupamento, contraste e estados: [[cores-e-hierarquia-visual]]. Para aprender a conectar a fonte real: [[configuracoes]].

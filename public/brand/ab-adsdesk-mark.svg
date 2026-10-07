@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>AB AdsDesk</title>
+  <defs>
+    <linearGradient id="social" x1="5" y1="61" x2="59" y2="4" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffb35c"/><stop offset=".38" stop-color="#ee4275"/><stop offset=".7" stop-color="#b132a3"/><stop offset="1" stop-color="#6642cc"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="62" height="62" rx="19" fill="url(#social)"/>
+  <rect x="5" y="5" width="54" height="54" rx="15" stroke="white" stroke-opacity=".2"/>
+  <path d="M12 43L22 21C22.8 19.2 25.2 19.2 26 21L35 43M17.8 32H30.2" stroke="white" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M39 21V43H45C53 43 55 32 45 32H39M39 21H44C52 21 53 32 45 32" stroke="white" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="49.5" cy="13" r="2.3" fill="white" fill-opacity=".85"/>
+</svg>

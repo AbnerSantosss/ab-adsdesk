@@ -48,7 +48,7 @@ export function AppHeader({
   const fetchedAt = account.apiSnapshot?.fetchedAt;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur print:static print:border-0">
+    <header className="social-header sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur print:static print:border-0">
       {previewingAsClient && (
         <div className="bg-slate-900 text-white print:hidden">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-1.5 text-xs sm:px-6 lg:px-8">
@@ -97,7 +97,7 @@ export function AppHeader({
           />
           <span className="hidden lg:inline-flex">
             {account.isRealApi ? (
-              <Badge tone="blue">Meta API conectada</Badge>
+              <Badge>Dados da Meta</Badge>
             ) : (
               <Badge tone="amber" title="Números de exemplo para apresentação">
                 Dados de demonstração
@@ -107,7 +107,7 @@ export function AppHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-1 print:hidden">
-          {account.isRealApi && (
+          {account.isRealApi && isManager && viewMode === 'MANAGER' && (
             <button
               type="button"
               onClick={onRefresh}
@@ -142,13 +142,13 @@ export function AppHeader({
         </div>
       </div>
 
-      <nav aria-label="Seções do painel" className="hidden border-t border-slate-100 md:block print:hidden">
+      <nav aria-label="Seções do painel" className="hidden overflow-x-auto overflow-y-hidden border-t border-slate-100 md:block print:hidden">
         <ul className="mx-auto flex max-w-7xl gap-1 px-4 sm:px-6 lg:px-8">
-          {TABS.map((tab) => {
+          {TABS.filter((tab) => !tab.managerOnly || (isManager && viewMode === 'MANAGER')).map((tab) => {
             const selected = tab.id === activeTab;
             const Icon = tab.icon;
             return (
-              <li key={tab.id}>
+              <li key={tab.id} className="shrink-0">
                 <a
                   href={hashForTab(tab.id)}
                   onClick={(e) => {
@@ -156,13 +156,13 @@ export function AppHeader({
                     onSelectTab(tab.id);
                   }}
                   aria-current={selected ? 'page' : undefined}
-                  className={`relative flex h-12 items-center gap-2 rounded-t-lg px-3 text-sm font-semibold transition ${
+                  className={`social-tab relative flex h-12 items-center gap-2 rounded-t-lg px-3 text-sm font-semibold transition ${
                     selected ? 'text-brand-700' : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
                   <Icon className="size-4" aria-hidden="true" />
                   {tab.label}
-                  {selected && <span className="bg-brand-600 absolute inset-x-2 -bottom-px h-0.5 rounded-full" aria-hidden="true" />}
+                  {selected && <span className="social-tab-line absolute inset-x-2 -bottom-px h-0.5 rounded-full" aria-hidden="true" />}
                 </a>
               </li>
             );

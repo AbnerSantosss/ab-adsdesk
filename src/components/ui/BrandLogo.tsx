@@ -28,6 +28,7 @@ const nameSizes = { sm: 'text-sm', md: 'text-base', lg: 'text-xl' };
 export function BrandLogo({ brand, showName = true, size = 'md', inverted = false }: BrandLogoProps) {
   const nameColor = inverted ? 'text-white' : 'text-slate-900';
   const subColor = inverted ? 'text-white/60' : 'text-slate-500';
+  const initials = brandInitials(brand.customLogoText || brand.appName);
 
   if (brand.logoType === 'CUSTOM_TEXT') {
     return (
@@ -49,12 +50,13 @@ export function BrandLogo({ brand, showName = true, size = 'md', inverted = fals
 
   return (
     <span className="inline-flex min-w-0 items-center gap-2.5">
-      <span
-        className={`bg-brand-600 grid shrink-0 place-items-center font-extrabold tracking-tight text-white shadow-sm ${markSizes[size]}`}
-        aria-hidden={showName}
-      >
-        {brandInitials(brand.customLogoText || brand.appName)}
-      </span>
+      {initials === 'AB' ? (
+        <img src="/brand/ab-adsdesk-mark.svg" alt={showName ? '' : brand.appName} width={64} height={64} className={`shrink-0 social-brand-mark ${markSizes[size]}`} />
+      ) : (
+        <span className={`bg-brand-600 grid shrink-0 place-items-center font-extrabold tracking-tight text-white shadow-sm ${markSizes[size]}`} aria-hidden={showName}>
+          {initials}
+        </span>
+      )}
       {showName && (
         <span className="flex min-w-0 flex-col leading-tight">
           <span className={`truncate font-bold ${nameSizes[size]} ${nameColor}`}>{brand.appName}</span>

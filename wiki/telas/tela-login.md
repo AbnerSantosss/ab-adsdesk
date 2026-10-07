@@ -1,6 +1,6 @@
 ---
 tipo: tela
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [tela, login, autenticacao, demonstracao]
 ---
 
@@ -18,11 +18,12 @@ Entrar sem fricção. Na demonstração comercial, um toque leva ao painel do ge
 - **"Ou use a entrada rápida":** um único botão, "Entrar como gestor da agência", com a legenda "Abner Senna · demonstração, sem senha". O usuário vem de `QUICK_LOGIN_USER` (o primeiro `AGENCY_MANAGER` de `demoUsers`). Um toque e já entra. Ver [[perfis-e-modos-de-visao]].
 - **Cliente (Camila Rocha, presa à conta Raro Pilates):** não tem botão. Entra pelo formulário, com o e-mail de demonstração dela, ou é vista pelo gestor em "Ver painel como" ([[cabecalho-e-navegacao]]).
 - **Rodapé:** "Ainda não tem acesso? Fale com a {parentBrand}".
+- **Identidade social:** chips neutros de contexto "Instagram" e "Facebook" (`SocialChannels`), formulário em fundo claro e entrada rápida em superfície neutra. Os chips não são botões de login social nem prometem resultados separados por canal. Ações usam a família da marca; ver [[cores-e-hierarquia-visual]].
 - **Painel de vendas (só em telas largas, `lg` para cima):**
-  - logo e a frase "Cada real investido em anúncios, explicado para o cliente.";
+  - marca própria AB AdsDesk e o título "Suas campanhas. Uma visão clara.", com a frase "Cada real investido em anúncios, explicado para o cliente.";
   - a tagline da marca;
   - três destaques: contatos do WhatsApp com custo, auditoria turbinado × estruturado e relatório diário ([[proposta-de-valor]]);
-  - mini gráfico "Contatos na semana 390", com selo "Exemplo" e a legenda "Ilustração com dados de demonstração";
+  - foto ilustrativa local (`/images/brand/social-studio.webp`) e a legenda "Do anúncio ao resultado. Criativos, investimento e contatos no mesmo painel.", sobre painel grafite sem manchas multicoloridas;
   - "Desenvolvido por {parentBrand}", se `showPoweredBy` estiver ligado.
 
 ## Como decide quem entra
@@ -39,7 +40,7 @@ A tela é igual para os dois. A diferença vem do perfil que entrou:
 ## No celular
 - O painel de vendas some e o logo aparece em cima do formulário.
 - Os campos têm 48 px de altura e fonte de 16 px, o que evita o zoom automático do iPhone ao tocar.
-- O botão de entrada rápida tem pelo menos 56 px de altura, e "Manter conectado", 44 px.
+- O botão de entrada rápida tem pelo menos 64 px de altura, e "Manter conectado", 44 px.
 - A grade da página usa `grid-cols-1` no celular. Sem isso, a trilha implícita crescia com o conteúdo e a tela rolava para o lado ([[interface-e-responsividade]]).
 
 ## De onde vêm os dados
@@ -50,7 +51,7 @@ Nada vem da Meta. Os perfis são fixos em `src/types/auth.ts`, e a marca (nome, 
 - **Um botão só é decisão de momento.** Se a demonstração voltar a precisar do cliente com um toque, basta outro botão com o `CLIENT_VIEWER` de `demoUsers`; o resto da tela não muda.
 - "Esqueci a senha" e "Fale com a..." abrem `wa.me/` com o `supportWhatsapp` da marca. O padrão é o número fictício `5511999999999`: sem configurar em [[personalizar-marca]], o link não leva a ninguém.
 - A marca vem do `localStorage` **deste navegador**. O cliente que abre o painel no próprio aparelho vê a marca padrão "AB AdsDesk", não a do gestor ([[modelo-saas-white-label]], [[inconsistencias-de-marca]]).
-- O "390 contatos" do painel lateral é ilustrativo e não tem relação com nenhuma conta.
+- A foto e os elementos sociais são ilustrativos. O visual não acrescenta autenticação real, integração de insights nem vínculo oficial com Instagram, Facebook ou Meta.
 
 ## Para produção
 - Autenticação real (Supabase Auth, Clerk, Auth0 ou similar).

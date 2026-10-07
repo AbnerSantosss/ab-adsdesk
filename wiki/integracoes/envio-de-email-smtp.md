@@ -48,7 +48,7 @@ As barreiras, na ordem em que agem:
 - **No máximo 20 tentativas por hora**, contadas em memória. A tentativa conta antes do `sendMail`, então senha errada ou destinatário recusado também gastam a cota. Assim uma sequência de falhas não martela o Gmail, que pode travar a conta.
 
 ## Por que só roda em dev/preview
-O `npm run build` gera arquivos estáticos em `dist/`, sem servidor. Publicado assim, o modal avisa que "a versão publicada ainda não tem esse serviço". Para produção falta:
+O `npm run build` gera arquivos estáticos em `dist/`, sem servidor. A imagem Docker publica só esse `dist/` com nginx, que responde `/api/*` com 404 ([[deploy-vps-portainer]]); o modal então avisa "Esta versão do painel ainda não envia e-mail. Copie o texto ou mande pelo WhatsApp." Publicar a rota sem login viraria um disparador de spam. Para produção falta:
 - levar `server/email.ts` para um backend ou função serverless;
 - proteger a rota com autenticação real, porque hoje a proteção é "só este computador" ([[seguranca]]);
 - trocar a conta Gmail por um remetente próprio (domínio da agência com SPF, DKIM e DMARC) ou por um serviço de e-mail transacional;

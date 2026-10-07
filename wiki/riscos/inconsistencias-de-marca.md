@@ -1,6 +1,6 @@
 ---
 tipo: risco
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [riscos, marca, branding, consistencia, textos]
 ---
 
@@ -17,10 +17,10 @@ Antes da refatoração de 2026-09-25, o código misturava três nomes de produto
 | **Clínica Harmonize** | Segunda conta demo | `src/data/mockData.ts` |
 | **Clareza** | Nome antigo | Só na chave `clareza_meta_api_config` (`src/lib/storage.ts`) |
 
-O logo deixou de ser um "AB" fixo: `BrandLogo` usa o texto de `customLogoText` (ou o `appName`) e tira as iniciais dele. A mensagem do relatório assina com o `parentBrand`, e a auditoria não traz mais nome de marca escrito no código, só a cor da marca ([[personalizar-marca]]).
+`BrandLogo` calcula as iniciais de `customLogoText` (ou `appName`); quando são AB, usa o monograma exclusivo `public/brand/ab-adsdesk-mark.svg`, também adotado como favicon. Outras iniciais, texto personalizado e estilo mínimo continuam disponíveis. A mensagem do relatório assina com `parentBrand`. A base branco gelo e os cartões neutros seguem [[cores-e-hierarquia-visual]], sem eliminar as opções de [[personalizar-marca]].
 
 ## O que ainda está inconsistente
-- **Chave `clareza_meta_api_config`.** O usuário não vê, mas confunde quem mantém o código. Renomear exige migração (ler a chave velha, gravar na nova, apagar a velha); sem isso, quem marcou "Lembrar" perde o token salvo.
+- **Chave `clareza_meta_api_config`.** O usuário não vê, mas o nome legado permanece. O token hoje fica somente em memória/sessionStorage. A cópia antiga de localStorage é removida **sem leitura nem migração de credenciais**. Uma renomeação deve manter essa limpeza e jamais reintroduzir token persistente; ver [[persistencia-localstorage]] e [[configuracoes]].
 - **Dois nomes para o mesmo remetente de e-mail.** O painel manda o `parentBrand` ("AB Software") como nome do remetente; o `EMAIL_FROM_NAME` padrão é "AB AdsDesk" e só aparece quando o nome não vem ([[envio-de-email-smtp]]). Num produto white-label, o padrão deveria ser o nome da agência.
 - **A marca personalizada não chega ao cliente.** Ela fica no `localStorage` do navegador de quem a salvou. Em outro aparelho, o cliente vê "AB AdsDesk" e o WhatsApp de suporte fictício (`5511999999999`) nos links da [[tela-login]] e do rodapé ([[compartilhamento-whatsapp]]).
 - **`public/raro-pilates-logo.svg` sobrou** sem uso ([[bugs-conhecidos]]).

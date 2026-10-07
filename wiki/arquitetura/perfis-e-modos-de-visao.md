@@ -1,6 +1,6 @@
 ---
 tipo: arquitetura
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [arquitetura, permissoes, perfis, view-mode, multi-tenant]
 ---
 
@@ -36,7 +36,8 @@ Mudou em 2026-09-25: a heurística antiga ("e-mail com certa palavra vira gestor
 | Métricas técnicas (impressões, cliques, CTR, CPC, CPM, frequência) | sim | não | não |
 | Painel de WhatsApp e e-mail no Diário | sim | não | não |
 | Peso de cada item na Auditoria | sim | não | não |
-| Menu: Personalizar marca, Conectar Meta | sim | sim | não |
+| Personalizar marca | sim | sim | não |
+| Aba Configurações, conexão Meta e atualização real | sim | não | não |
 | Menu: Simulador de retorno, Sair | sim | sim | sim |
 | Link "Falar com {parentBrand}" no rodapé | não | não | sim |
 
@@ -44,17 +45,16 @@ Durante a prévia, uma faixa escura no topo avisa "Você está vendo o painel co
 
 ## Isolamento do cliente
 
-A conta exibida é `accounts.find(id === user.clientAccountId) ?? accounts[0]`. O cliente não tem seletor nem troca de modo, então fica preso à própria conta.
+A conta do cliente é procurada pelo `clientAccountId`. Se não estiver disponível, o App mostra **Conta indisponível** e permite sair; não renderiza outra conta como fallback. O cliente não tem seletor nem troca de modo. Essa proteção de interface foi corrigida em 2026-10-07, mas a autorização definitiva ainda depende do servidor.
 
 Mudou em 2026-09-25: o vazamento antigo foi fechado. Antes, o cliente podia trocar de conta pelo seletor e ativar a "Visão Gestor".
 
 ## Armadilhas
 
 - **Tudo é client-side.** O usuário logado vem do storage e só é validado por `id` e `role`. Editar esse JSON transforma qualquer um em gestor. Em produção, o perfil e a conta precisam vir do servidor; ver [[seguranca]].
-- **Fallback perigoso.** Por causa do `?? accounts[0]`, se o `clientAccountId` não existir, o cliente vê a primeira conta da lista. Essa conta pode ser a conta real conectada naquele navegador ou a de outro cliente. O certo seria mostrar um erro.
-- **Prévia imperfeita.** A prévia de cliente não é fiel: o seletor de contas e os itens de gestor do menu continuam ativos, porque dependem do perfil. Pelo mesmo motivo, o link de WhatsApp do rodapé não aparece.
+- **Prévia parcial.** O seletor de contas e Personalizar marca continuam disponíveis ao gestor em modo cliente. O atalho de conexão no seletor ainda pode ser exibido, mas a guarda do App impede abrir Configurações. A aba, o item de conexão do menu e a atualização real ficam ocultos. O link de suporte no rodapé depende do perfil, não do modo.
 - **Modo não salvo.** `managerViewMode` volta para `MANAGER` a cada login e não é gravado.
 - **Uma conta por cliente.** `clientAccountId` guarda uma conta só, então uma rede com vários estúdios não cabe no modelo; ver [[modelo-saas-white-label]] e [[pontos-de-melhoria]].
 - **Cópia desatualizada.** O objeto `User` salvo é uma cópia. Se `demoUsers` mudar (nome, conta), quem já estava logado continua com os dados antigos até sair.
 
-Personas por trás dos perfis: [[personas]].
+Personas por trás dos perfis: [[personas]]. Acesso à conexão e cancelamento de operações: [[configuracoes]] e [[estado-e-navegacao]]. Limites da sessão e limpeza ao sair: [[persistencia-localstorage]].

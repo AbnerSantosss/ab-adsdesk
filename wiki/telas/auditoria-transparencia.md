@@ -1,6 +1,6 @@
 ---
 tipo: tela
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [tela, auditoria, transparencia, turbinar, confianca]
 ---
 
@@ -11,6 +11,8 @@ tags: [tela, auditoria, transparencia, turbinar, confianca]
 > Mudou em 2026-09-25: a auditoria passou a ser **calculada** (`auditChecks` e `auditScore` em `src/lib/metrics.ts`). Saíram a nota pronta do mock, o checklist fixo ("0% turbinados", "3 campanhas", "3km"), o modal `TransparencyAuditModal`, a faixa de custo inventada (R$ 4,90–6,50 × R$ 25–40) e o selo "Clareza Ads".
 
 ## O que aparece
+O cabeçalho traz superfície neutra, foto local ilustrativa e "Instagram & Facebook". Nota, estrutura, checagens, observação e comparativo compartilham cards brancos com camadas internas claras. Sucesso ou atenção aparecem em ícones, selos e texto, sem colorir uma seção inteira. A faixa final mantém contraste escuro. Os estados têm significado verificável; não representam métricas separadas por plataforma. Ver [[cores-e-hierarquia-visual]].
+
 1. **Saúde da conta:** um anel com a nota de 0 a 100, o nível e "N de 6 itens em ordem", seguido das seis checagens (tabela abaixo).
 2. **"Observação do gestor de tráfego":** uma citação com `audit.managerNote`, quando existe.
 3. **"Estrutura das campanhas":** todas as campanhas, inclusive as pausadas, com situação, tipo, "Gerenciador" ou "Post turbinado", públicos, investido e custo com selo de saúde.
@@ -38,6 +40,8 @@ A nota fica em cima das checagens (lado a lado só a partir de `lg`). A tabela d
 
 ## De onde vêm os dados
 O cálculo usa `account.campaigns`, `dailyHistory` e `account.audit` ([[metricas-e-calculos]]). Mas as entradas continuam escritas à mão em [[dados-mock]]: `pixelConfigured`, `whatsappConnected`, `isProfessionalStructure`, `FATIGUE` e `managerNote`. Numa conta real, aparece o `ApiAccountNotice`.
+
+A revisão visual não altera pesos, guardas, comparações ou fontes dos dados, nem adiciona integração de insights. Fotos e identidade social não tornam a auditoria uma consulta real à Meta ([[o-que-e-simulado]]).
 
 ## Origem da dor
 A aba nasceu do áudio de um dono de estúdio de Pilates com medo de pagar por post turbinado ([[personas]]). A frase "O maior receio citado no áudio" saiu da tela, mas essa dor continua sendo a razão da aba.

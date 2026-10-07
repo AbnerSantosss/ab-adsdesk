@@ -1,6 +1,6 @@
 ---
 tipo: arquitetura
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [arquitetura, persistencia, localstorage, sessionstorage, seguranca]
 ---
 
@@ -21,8 +21,8 @@ Não há banco de dados. Tudo o que o painel lembra fica no navegador de quem us
 |---|---|---|---|
 | `ab_adsdesk_auth_user` | local com "Lembrar" (padrão); senão, session | o objeto `User` inteiro | login no App |
 | `ab_adsdesk_brand_config` | local | `BrandConfig` | [[personalizar-marca]] |
-| `clareza_meta_api_config` | session por padrão; local com "Lembrar neste navegador" | `{ accessToken, adAccountId }` | [[modal-conectar-meta]] |
-| `ab_adsdesk_connected_account` | local | `AdAccount` montado a partir da Meta, com `apiSnapshot` | App, ao conectar e ao atualizar |
+| `clareza_meta_api_config` | somente session, com cópia em memória | `{ accessToken, adAccountId }`; legado local removido sem leitura | [[configuracoes]] |
+| `ab_adsdesk_connected_account` | local | `AdAccount` da Meta com `apiSnapshot` e `apiReport`, sem token | App, após conectar ou atualizar com sucesso |
 | `ab_adsdesk_selected_account` | local | id da conta que o gestor está vendo | App |
 | `ab_adsdesk_report_recipients` | local | `{ [accountId]: email }` | modal de e-mail do [[relatorio-diario]] |
 
@@ -35,7 +35,7 @@ Mudou em 2026-09-25:
 
 ## O que não é salvo
 
-Não são salvos o filtro de objetivo, o período, a busca, o modo "ver como cliente" nem o modal aberto. A aba ativa também não vai para o storage: fica na URL (`#campanhas` etc.). Por isso, ao recarregar, só a aba é mantida; o resto volta ao padrão. Ver [[estado-e-navegacao]].
+Não são salvos o filtro de objetivo, a busca, o modo "ver como cliente" nem o modal aberto. O período de exploração do mock também é local à tela; o período da última importação real fica em `apiReport.range`, pois faz parte do snapshot. A aba ativa fica na URL (`#campanhas`, `#configuracoes` etc.), sem chave de storage. Ver [[estado-e-navegacao]].
 
 ## Leitura defensiva
 
@@ -46,7 +46,9 @@ Não são salvos o filtro de objetivo, o período, a busca, o modo "ver como cli
 ## Armadilhas
 
 - **Token em texto puro.** Mesmo no sessionStorage, qualquer script da página consegue ler o token. É aceitável numa demonstração com token de curta duração; em produção, o token deve ficar no servidor. Ver [[seguranca]] e [[meta-graph-api]].
-- **Conta sem token.** A conta conectada fica no localStorage, mas o token, por padrão, fica só na sessão. Depois de fechar a aba, a conta continua na lista com os dados antigos, e o botão de atualizar pede o token de novo.
-- **Sair não limpa tudo.** O logout apaga só `auth_user`. Token, conta conectada, marca e destinatários ficam para quem usar o mesmo navegador depois.
+- **Conta sem token.** A conta/relatório fica no localStorage, mas o token fica somente na sessão. Depois de fechar a aba, o snapshot anterior pode permanecer; atualizar exige token válido em [[configuracoes]]. O cliente não recebe esse formulário.
+- **Limpeza ao sair.** Logout e desconexão cancelam atualizações e removem token e conta/relatório conectado. Logout também remove `auth_user`. Marca, seleção anterior e destinatários continuam locais; ainda falta política de retenção e isolamento no servidor para uso compartilhado.
 - **Cada navegador tem a sua marca.** A marca personalizada e os destinatários não viajam entre dispositivos. O cliente só vê a marca da agência se abrir o painel no mesmo navegador em que o gestor a configurou. Para um produto white-label, isso precisa ir para o servidor; ver [[modelo-saas-white-label]].
-- **Nome legado.** `clareza_meta_api_config` mantém o prefixo do nome antigo do produto. Renomear a chave agora desconectaria quem já salvou o token. Ver [[inconsistencias-de-marca]].
+- **Nome legado.** `clareza_meta_api_config` mantém o prefixo antigo, mas sua cópia em localStorage é descartada sem leitura ou migração de credenciais. Uma futura mudança de nome deve preservar essa limpeza, sem reintroduzir token persistente.
+
+A importação é aplicada de forma completa: falha, cancelamento ou limite preserva o snapshot anterior. Esses cuidados não oferecem OAuth, criptografia em repouso ou autorização real; ver [[meta-graph-api]] e [[seguranca]].

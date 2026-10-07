@@ -69,6 +69,11 @@ export const mockAccounts: AdAccount[] = [
         creatives: [
           {
             id: 'creat_01',
+            previewImage: {
+              src: '/images/ads/pilates-reformer.webp',
+              position: '50% 12%',
+              description: 'Aluna praticando alongamento no Reformer em um estúdio de Pilates.',
+            },
             name: 'Reformer em ação: alongamento profundo e alívio de tensão',
             headline: 'Agende sua aula experimental no Raro Pilates',
             primaryText:
@@ -87,6 +92,11 @@ export const mockAccounts: AdAccount[] = [
           },
           {
             id: 'creat_02',
+            previewImage: {
+              src: '/images/ads/pilates-turma.webp',
+              position: '50% 15%',
+              description: 'Turma pequena de Pilates com acompanhamento de uma instrutora.',
+            },
             name: 'Foto do ambiente: turmas de até 3 alunas por instrutora',
             headline: 'Raro Pilates · Cada evolução é valiosa',
             primaryText:
@@ -105,6 +115,10 @@ export const mockAccounts: AdAccount[] = [
           },
           {
             id: 'creat_03',
+            previewImage: {
+              src: '/images/ads/pilates-postura.webp',
+              description: 'Exercício de fortalecimento e postura no tapete de Pilates.',
+            },
             name: 'Carrossel: 4 benefícios do Pilates para a postura',
             headline: 'Deslize e conheça o método Raro Pilates',
             primaryText:
@@ -156,6 +170,11 @@ export const mockAccounts: AdAccount[] = [
         creatives: [
           {
             id: 'creat_04',
+            previewImage: {
+              src: '/images/ads/pilates-avaliacao.webp',
+              position: '50% 12%',
+              description: 'Fisioterapeuta orientando o alinhamento postural de uma aluna.',
+            },
             name: 'Antes e depois da postura: 60 dias de Pilates',
             headline: 'Diga adeus às dores nas costas ao acordar',
             primaryText:
@@ -174,6 +193,10 @@ export const mockAccounts: AdAccount[] = [
           },
           {
             id: 'creat_05',
+            previewImage: {
+              src: '/images/ads/pilates-cadillac.webp',
+              description: 'Fisioterapeuta acompanhando um exercício no aparelho Cadillac.',
+            },
             name: 'Vídeo da fisioterapeuta explicando o aparelho Cadillac',
             headline: 'Como o Cadillac alinha a coluna sem dor',
             primaryText: 'Nossa fisioterapeuta responsável mostra na prática exercícios seguros de descompressão.',
@@ -224,6 +247,10 @@ export const mockAccounts: AdAccount[] = [
         creatives: [
           {
             id: 'creat_06',
+            previewImage: {
+              src: '/images/ads/pilates-estudio.webp',
+              description: 'Estúdio de Pilates iluminado com aparelhos de madeira e plantas.',
+            },
             name: 'Tour de 15 segundos pelo estúdio climatizado',
             headline: 'Seu novo refúgio de autocuidado no coração do bairro',
             primaryText: 'Estacionamento no local, vestiário completo e café orgânico. Venha nos visitar!',
@@ -262,6 +289,11 @@ export const mockAccounts: AdAccount[] = [
         creatives: [
           {
             id: 'creat_07',
+            previewImage: {
+              src: '/images/ads/pilates-bem-estar.webp',
+              position: '50% 30%',
+              description: 'Mulher sorrindo após uma aula, segurando seu tapete de Pilates.',
+            },
             name: 'Frase motivacional turbinada pelo botão do Instagram',
             headline: 'Venha fazer pilates',
             primaryText: 'Clique no link e fale com a recepção.',
@@ -430,6 +462,10 @@ export const mockAccounts: AdAccount[] = [
         creatives: [
           {
             id: 'creat_harm_01',
+            previewImage: {
+              src: '/images/ads/estetica-consulta.webp',
+              description: 'Profissional conversando com uma paciente sobre cuidados faciais.',
+            },
             name: 'Vídeo: como funciona o bioestimulador de colágeno',
             headline: 'Rejuvenescimento natural, sem exageros',
             primaryText:
@@ -448,6 +484,10 @@ export const mockAccounts: AdAccount[] = [
           },
           {
             id: 'creat_harm_02',
+            previewImage: {
+              src: '/images/ads/estetica-natural.webp',
+              description: 'Retrato de uma mulher com expressão leve e pele natural.',
+            },
             name: 'Carrossel: resultados naturais de toxina',
             headline: 'Expressão leve, resultado natural',
             primaryText: 'Veja casos reais de pacientes (com autorização) e tire suas dúvidas pelo WhatsApp.',
@@ -497,6 +537,10 @@ export const mockAccounts: AdAccount[] = [
         creatives: [
           {
             id: 'creat_harm_03',
+            previewImage: {
+              src: '/images/ads/estetica-limpeza.webp',
+              description: 'Sessão de cuidado facial com aplicação de máscara por uma profissional.',
+            },
             name: 'Foto: protocolo de limpeza de pele em 5 etapas',
             headline: 'Pele renovada em uma sessão',
             primaryText: 'Avaliação gratuita com nossa biomédica. Deixe seu contato e retornamos no mesmo dia.',
@@ -534,6 +578,10 @@ export const mockAccounts: AdAccount[] = [
         creatives: [
           {
             id: 'creat_harm_04',
+            previewImage: {
+              src: '/images/ads/estetica-cuidados.webp',
+              description: 'Produtos para cuidados com a pele sobre uma bancada de clínica.',
+            },
             name: 'Post da promoção turbinado pelo Instagram',
             headline: 'Promoção de setembro',
             primaryText: 'Aproveite os preços especiais deste mês. Chame no Direct!',

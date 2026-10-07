@@ -1,6 +1,6 @@
 ---
 tipo: visao
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [produto, visao, saas, meta-ads, transparencia]
 ---
 
@@ -25,23 +25,25 @@ Cada pergunta típica do cliente tem uma tela que responde sozinha. O mapa compl
 | [[anuncios]] | `#anuncios` | "Qual anúncio está funcionando melhor?" |
 | [[relatorio-diario]] (Diário) | `#diario` | "Quanto foi gasto ontem e quantas pessoas chamaram?" |
 | [[auditoria-transparencia]] | `#auditoria` | "Você está fazendo tráfego de verdade ou só turbinando?" |
+| [[configuracoes]] (gestor) | `#configuracoes` | "Como conectar a conta e importar os relatórios?" |
 
 Cada tela tem endereço próprio: dá para mandar o link de uma tela específica e o botão voltar do navegador funciona ([[estado-e-navegacao]]). No celular, as telas ficam numa barra fixa embaixo e as janelas abrem como painel que sobe da borda inferior ([[interface-e-responsividade]], [[cabecalho-e-navegacao]]).
 
 Extras:
-- **Relatório do dia pronto para enviar:** o gestor abre no WhatsApp, copia o texto ou manda por e-mail ([[compartilhamento-whatsapp]], [[envio-de-email-smtp]]).
+- **Relatório demonstrativo pronto para enviar:** no fluxo do mock, o gestor abre no WhatsApp, copia o texto ou manda por e-mail. O relatório real importado oferece impressão/PDF; os canais de envio ainda não consomem esse contrato ([[compartilhamento-whatsapp]], [[envio-de-email-smtp]]).
 - [[simulador-roi]] ("vale a pena investir mais?").
 - [[personalizar-marca]]: o gestor coloca a própria marca no painel.
 
-## Estado atual (setembro de 2026)
-> [!warning] É um protótipo de demonstração, não um produto pronto para vender.
-> - Front-end React + Vite. Nasceu de um export do Google AI Studio, mas a dependência do Gemini já foi removida ([[stack-e-execucao]]).
-> - Campanhas, anúncios e histórico diário vêm dos dados de demonstração da conta **Raro Pilates** ([[dados-mock]]).
-> - A conexão com a Meta é real, mas lê só o **resumo da conta** (nome, situação, moeda, total gasto) pela Graph API v23.0, sem `/insights`. Numa conta conectada, as telas de campanhas e o histórico ficam vazios, com aviso ([[meta-graph-api]]).
-> - Login só com perfis de demonstração; não há contas de usuário nem backend de dados.
-> - O botão **Atualizar** só aparece na conta conectada e relê o resumo de verdade. Não existe mais sincronização fingida nem botão de pausar campanha.
-> - O envio por e-mail só funciona com o servidor local rodando (`npm run dev` ou `npm run preview`); a versão estática publicada não envia.
-> - Inventário completo em [[o-que-e-simulado]]; caminho até vender em [[pontos-de-melhoria]]. Última rodada de mudanças: [[refatoracao-ux-2026-09-25]].
+## Estado atual (outubro de 2026)
+> [!warning] Integração local implementada; ainda não é um SaaS de produção.
+> - React + Vite com demonstrações de **Raro Pilates** e **Clínica Harmonize** e fotos ilustrativas locais ([[stack-e-execucao]], [[dados-mock]]).
+> - Configurações orienta o gestor e importa pela Marketing API totais, série diária, campanhas, anúncios e criativos autorizados. Os relatórios reais usam `MetaReports`, sem preencher ausências com mock ([[meta-graph-api]]).
+> - O token fica somente na sessão do navegador. Há uma conta real por navegador, sem OAuth, backend Meta, sincronização entre dispositivos ou autenticação de produção ([[seguranca]]).
+> - Não houve validação ao vivo com uma credencial do usuário nesta revisão. Implementação e testes controlados não comprovam acesso à conta nem igualdade com o Gerenciador.
+> - Atualizar refaz a leitura do período real; falha preserva o snapshot anterior. Pixel, WhatsApp, origem Turbinar e nota de saúde não são verificados pela importação atual.
+> - E-mail continua dependente do servidor local e do contrato demonstrativo; a imagem estática não inclui SMTP. O relatório real pode ser impresso.
+> - A interface usa branco gelo, cartões neutros, indicadores uniformes e cabeçalho compacto com calendário. A decisão e suas fontes estão em [[cores-e-hierarquia-visual]].
+> - Inventário completo em [[o-que-e-simulado]]; caminho até produção em [[pontos-de-melhoria]]; histórico em [[log]].
 
 ## Decisão em aberto: quem é o comprador?
 O pedido do dono do projeto fala em vender "para pessoas leigas". O código, porém, foi desenhado para **vender ao gestor ou agência**, que repassa ao cliente (modelo B2B2C/white-label):

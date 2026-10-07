@@ -1,6 +1,6 @@
 ---
 tipo: entidade
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [dados, mock, demo, raro-pilates]
 ---
 
@@ -48,6 +48,12 @@ Mudou em 2026-09-25:
 - A Harmonize ganhou 3 campanhas e 7 dias de histórico; antes tinha 1 campanha e 1 dia.
 - O resíduo "VivaBem" saiu da `camp_03`.
 - "Dra. Camila" virou Camila Rocha.
+
+## Imagens ilustrativas dos anúncios
+
+Os 11 anúncios têm `previewImage` ([[modelo-de-dados]]) apontando para WebP em `public/images/ads/`: 7 fotos para Raro Pilates e 4 para Clínica Harmonize. As imagens foram geradas por IA conforme o tema de cada peça e são compartilhadas pelos cartões de [[anuncios]], pelo destaque da [[visao-geral]], pelas miniaturas de [[campanhas]] e pelo detalhe. Não representam criativos reais importados da Meta ([[o-que-e-simulado]]).
+
+Os originais e manifestos de geração ficam em `output/imagegen/ads/`, com os prompts consolidados em `output/imagegen/ads/prompts.json`. O site usa somente as versões WebP em `public/images/ads/`.
 
 ## Usuários demo
 

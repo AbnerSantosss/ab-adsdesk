@@ -100,7 +100,7 @@ export function UserMenu({ user, viewMode, onViewModeChange, onOpenBrand, onOpen
 
           <div className="border-t border-slate-100 py-1">
             {isManager && <MenuItem icon={Palette} label="Personalizar marca" onClick={run(onOpenBrand)} />}
-            {isManager && <MenuItem icon={Link2} label="Conectar conta da Meta" onClick={run(onOpenConnect)} />}
+            {isManager && viewMode === 'MANAGER' && <MenuItem icon={Link2} label="Configurações e conexão Meta" onClick={run(onOpenConnect)} />}
             <MenuItem icon={Calculator} label="Simulador de retorno" onClick={run(onOpenRoi)} />
           </div>
           <div className="border-t border-slate-100 pt-1">

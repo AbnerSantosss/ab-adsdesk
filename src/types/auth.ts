@@ -10,7 +10,7 @@ export interface User {
   avatarInitials: string;
 }
 
-export type BrandColor = 'emerald' | 'indigo' | 'blue' | 'violet' | 'slate';
+export type BrandColor = 'social' | 'emerald' | 'indigo' | 'blue' | 'violet' | 'slate';
 export type LogoType = 'ICON_AB' | 'CUSTOM_TEXT' | 'MINIMAL';
 
 export interface BrandConfig {
@@ -30,8 +30,8 @@ export interface BrandConfig {
 export const defaultBrandConfig: BrandConfig = {
   appName: 'AB AdsDesk',
   parentBrand: 'AB Software',
-  tagline: 'Gestão e transparência de anúncios na Meta',
-  primaryColor: 'emerald',
+  tagline: 'Resultados de anúncios no Instagram e Facebook',
+  primaryColor: 'social',
   logoType: 'ICON_AB',
   customLogoText: 'AB Software',
   supportWhatsapp: '5511999999999',

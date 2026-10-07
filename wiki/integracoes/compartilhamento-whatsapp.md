@@ -1,6 +1,6 @@
 ---
 tipo: integracao
-atualizado: 2026-09-25
+atualizado: 2026-10-07
 tags: [integracao, whatsapp, relatorio, notificacao]
 ---
 
@@ -12,12 +12,12 @@ Não existe integração com a API do WhatsApp. Tudo usa links `wa.me`, que abre
 Campanhas de conversa (Click to WhatsApp) levam a pessoa ao WhatsApp da recepção. A tela de [[campanhas]] mostra isso ao cliente pelo campo `conversionDestination` ([[modelo-de-dados]]), só como texto. A [[auditoria-transparencia]] tem o item "WhatsApp conectado à página", que hoje vem do mock (`audit.whatsappConnected`).
 
 ## 2. Canal do relatório diário (funcionalidade)
-No [[relatorio-diario]], só na visão gestor, o quadro "Mensagem para o cliente" mostra a prévia em balão de WhatsApp e três ações:
+No [[relatorio-diario]] de demonstração, só na visão gestor, o quadro "Mensagem para o cliente" mostra a prévia em balão de WhatsApp e três ações. O contrato real `MetaReports` ainda não usa esse quadro; nele há impressão/PDF, sem envio integrado. Ver [[meta-graph-api]] e [[o-que-e-simulado]].
 - **Abrir no WhatsApp:** `https://wa.me/?text=...`, **sem destinatário**; o gestor escolhe o contato.
 - **Copiar texto:** `copyText` (`src/lib/clipboard.ts`) tenta a área de transferência moderna e cai para o método antigo. Se o navegador bloquear, a tela pede para copiar à mão.
 - **Enviar por e-mail:** a mesma mensagem, por SMTP ([[envio-de-email-smtp]]).
 
-A mensagem sai de `dailyReportMessage` (`src/lib/metrics.ts`): título em `*negrito*`, data, investimento, resultados com o rótulo da conta (`resultLabel`), custo por resultado com a "média de 7 dias" entre parênteses, bloco "Por tipo de campanha", anúncio destaque, convite para responder e o nome da agência (`parentBrand`) no fim. Não usa emojis nem itálico. A prévia (`src/components/ui/WhatsAppText.tsx`) interpreta só o `*negrito*`.
+A mensagem sai de `dailyReportMessage` (`src/lib/metrics.ts`): título em `*negrito*`, data, investimento, resultados com o rótulo da conta (`resultLabel`), custo por resultado com a média dos dias anteriores disponíveis (até 7), bloco "Por tipo de campanha", anúncio destaque, convite para responder e o nome da agência (`parentBrand`) no fim. Sem dias anteriores não há comparação. Não usa emojis nem itálico. A prévia (`src/components/ui/WhatsAppText.tsx`) interpreta só o `*negrito*`; ver [[metricas-e-calculos]].
 
 ## 3. Contato com a agência (suporte)
 O número `supportWhatsapp` da marca ([[personalizar-marca]]) vira link `wa.me/{número}` com texto pronto em três lugares: "Esqueci a senha" e "Quero conhecer" na [[tela-login]], e o botão de dúvida no rodapé, visível para o perfil cliente.
