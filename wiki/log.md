@@ -162,3 +162,15 @@ publicação na VPS continua uma etapa separada; este registro não confirma atu
 Checagem final da wiki: 41 páginas, 631 wikilinks e 41 links Markdown locais válidos; nenhum slug
 repetido, metadado inválido, link/âncora quebrado ou página órfã/inalcançável. Os exemplos de links
 em código inline ou blocos de código são ignorados pelo validador.
+
+## [2026-10-07] update | Publicação no GitHub confirmada
+O commit `b2dbbc8` foi enviado para `main` em
+[AbnerSantosss/ab-adsdesk](https://github.com/AbnerSantosss/ab-adsdesk). O SHA completo remoto
+correspondeu ao local, e a árvore de trabalho estava limpa após o envio. O Git utilizou a
+autenticação existente, sem alteração de permissões nem reescrita de histórico.
+
+A [execução inicial do Actions](https://github.com/AbnerSantosss/ab-adsdesk/actions/runs/37699900956)
+terminou com sucesso, incluindo tipos, 15 testes, wiki e construção/publicação da imagem no GHCR.
+Atualizados o índice e [[deploy-vps-portainer]] com essa evidência. VPS, Portainer, domínio e
+conexão Meta ao vivo não foram validados nesta publicação. O preview local continua respondendo
+HTTP 200 na porta 3000.

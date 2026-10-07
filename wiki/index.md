@@ -17,6 +17,8 @@ OAuth e autenticação de produção. Não houve conexão ao vivo com credencial
 O envio por e-mail existente é local e separado do novo relatório real. Veja [[configuracoes]],
 [[o-que-e-simulado]] e [[pontos-de-melhoria]].
 
+Código e documentação publicados em [AbnerSantosss/ab-adsdesk](https://github.com/AbnerSantosss/ab-adsdesk), com a primeira execução do GitHub Actions aprovada. A publicação na VPS permanece separada, conforme [[deploy-vps-portainer]].
+
 ## Por onde começar
 
 | Se você quer... | Leia |

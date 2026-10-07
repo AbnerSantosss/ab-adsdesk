@@ -10,7 +10,12 @@ Pedido do usuário em 2026-09-25: publicar o projeto no GitHub como repositório
 pelo **Portainer** e dar um domínio na **Cloudflare**. O deploy segue o padrão das outras stacks do
 servidor `proxserverabner` (capi-console, codigo-vencedor, Dubra Frame).
 
-> **Estado em 2026-10-07: publicação em preparação.** Código, wiki e workflow estão sendo consolidados para commit e envio. A interrupção de 25/09 e o push recusado por escopo são históricos; sucesso atual exige conferir o commit remoto e o Actions. VPS e Cloudflare continuam sem validação nesta revisão. Veja [O que falta](#o-que-falta-para-terminar).
+> **Estado em 2026-10-07: código e wiki publicados no GitHub.** O commit `b2dbbc8` foi enviado para `main`, com correspondência confirmada entre o SHA local e o remoto. A publicação usou a autenticação existente do Git e não exigiu alterar permissões nem reescrever o histórico. VPS e Cloudflare continuam sem validação nesta revisão. Veja [O que falta](#o-que-falta-para-terminar).
+
+Repositório: [AbnerSantosss/ab-adsdesk](https://github.com/AbnerSantosss/ab-adsdesk).
+Entrega: [commit b2dbbc8](https://github.com/AbnerSantosss/ab-adsdesk/commit/b2dbbc82d6bea80011e70cd4f111c8d65f6465eb).
+Execução inicial: [GitHub Actions 37699900956](https://github.com/AbnerSantosss/ab-adsdesk/actions/runs/37699900956).
+Essa execução terminou com sucesso: instalação, tipos, 15 testes, validação da wiki e construção/publicação da imagem no GHCR. Isso confirma a imagem publicada pelo workflow; não confirma acesso anônimo ao pacote nem atualização da VPS.
 
 ## Como fica quando estiver pronto
 
@@ -40,10 +45,10 @@ git push (main) → GitHub Actions → ghcr.io/abnersantosss/ab-adsdesk:latest
 | `Dockerfile` | Build em `node:22-alpine` (`npm ci` + `npm run build`), serve em `nginx:1.27-alpine`, `HEALTHCHECK` em `/healthz` |
 | `deploy/nginx.conf` | `/healthz` → 200 `ok`; `/api/` → 404 JSON; `/assets/` com cache de 1 ano (`immutable`); `/` com `no-cache` e fallback para `index.html`; gzip; `server_tokens off` |
 | `deploy/security-headers.conf` | CSP, `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy` |
-| `.dockerignore` | Deixa fora `node_modules`, `dist`, `.env*`, `.git`, `.claude`, `.impeccable`, `wiki`, `*.md` |
+| `.dockerignore` | Deixa fora `node_modules`, `dist`, `.env*`, `.git`, `.claude`, `.impeccable`, `output`, `wiki`, `*.md` |
 | `docker-compose.yml` | Stack do Portainer: imagem do GHCR, `pull_policy: always`, `127.0.0.1:${APP_PORT:-3340}:80`, log com `max-size`, healthcheck |
 | `.github/workflows/build.yml` | A cada push em `main`: instalação, lint, testes, validação da wiki, build Docker e push para GHCR com tags `latest` e SHA |
-| `README.md` | Seção "Publicação (VPS + Portainer + Cloudflare)" |
+| `README.md` | Execução, integração Meta, GitHub e publicação |
 
 `.gitignore` ganhou `.claude/settings.local.json` e `.impeccable/`. O `.env.local` já era ignorado
 (`.env*`), e o `git check-ignore` confirmou.
@@ -81,12 +86,7 @@ Os resultados Docker abaixo registram a preparação de **25/09/2026**, não o b
 
 ## O que falta para terminar
 
-1. **Liberar o escopo `workflow`** no `gh` (abre o navegador para confirmar):
-   ```bash
-   gh auth refresh -h github.com -s workflow,read:packages
-   ```
-   O `read:packages` serve só para conferir a visibilidade do pacote no passo 4.
-2. **Validar, commitar as alterações revisadas e enviar:**
+1. **Publicação no GitHub concluída.** O bloqueio de autenticação de setembro é histórico; o envio de outubro funcionou com o Git. Nas próximas alterações, validar e selecionar os arquivos antes do commit:
    ```bash
    npm run lint
    npm test
@@ -98,34 +98,34 @@ Os resultados Docker abaixo registram a preparação de **25/09/2026**, não o b
    git push -u origin main
    ```
    Se o GitHub recusar o workflow, corrigir a autenticação autorizada com escopo adequado e repetir o push. Não retirar o workflow nem reescrever commits como atalho. Conferir que o SHA remoto corresponde ao commit local.
-3. **Acompanhar o Actions:** `gh run watch`, ou a aba Actions do repositório. O job `imagem` precisa
+2. **Acompanhar o Actions:** `gh run watch`, ou a aba Actions do repositório. O job `imagem` precisa
    terminar verde.
-4. **Conferir se o pacote GHCR está público:**
+3. **Conferir se o pacote GHCR está público:**
    - pull anônimo de `ghcr.io/abnersantosss/ab-adsdesk:latest`; os pacotes `capi-console` e `aquablast`
      respondem 200 sem login;
    - se estiver privado: GitHub → perfil → Packages → `ab-adsdesk` → Package settings → Change
      visibility → Public;
    - outra saída é cadastrar um registry com token no Portainer.
-5. **Portainer:**
+4. **Portainer:**
    - Stacks → Add stack → nome `ab-adsdesk` → **Repository**;
    - URL `https://github.com/AbnerSantosss/ab-adsdesk`, referência `refs/heads/main`, Compose path
      `docker-compose.yml`;
    - nenhuma variável obrigatória; `APP_PORT` só se a 3340 estiver ocupada;
    - Deploy. Opcional: ligar *GitOps updates*.
    - Na VPS, `curl -s http://127.0.0.1:3340/healthz` deve responder `ok`.
-6. **Cloudflare:**
+5. **Cloudflare:**
    - Zero Trust → Networks → Tunnels → túnel do servidor → Public Hostname → Add;
    - subdomínio `adsdesk`, domínio `proxserverabner.site`, tipo `HTTP`, URL `localhost:3340`;
    - o registro de DNS é criado pelo túnel. Se o túnel for gerenciado por arquivo, edite
      `/etc/cloudflared/config.yml` na VPS e reinicie o `cloudflared`;
    - o subdomínio `adsdesk` é sugestão e pode mudar.
-7. **Conferir no ar:** `https://adsdesk.proxserverabner.site`:
+6. **Conferir no ar:** `https://adsdesk.proxserverabner.site`:
    - login rápido e as telas funcionam;
    - no console, nenhuma violação de CSP;
    - `/healthz` responde `ok`.
-8. **Recomendado:** proteger o endereço com Cloudflare Access (liberar só os e-mails da agência).
+7. **Recomendado:** proteger o endereço com Cloudflare Access (liberar só os e-mails da agência).
    O login do painel é de demonstração e aceita qualquer senha ([[seguranca]], [[tela-login]]).
-9. **Limpeza local:** o container de teste `adsdesk-test` já foi removido. A imagem `ab-adsdesk:local`
+8. **Limpeza local:** o container de teste `adsdesk-test` já foi removido. A imagem `ab-adsdesk:local`
    pode ser apagada com `docker rmi ab-adsdesk:local`.
 
 ## Armadilhas
